@@ -19,9 +19,7 @@
       --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -144,13 +142,6 @@
       color: var(--accent-2);
     }
 
-    .inline {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
     .btn {
       appearance: none;
       border: none;
@@ -160,40 +151,18 @@
       font-weight: 700;
       cursor: pointer;
       transition: transform 0.06s ease, opacity 0.2s ease, background 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
     }
 
-    .btn:hover {
-      opacity: 0.96;
-    }
+    .btn:hover { opacity: 0.96; }
+    .btn:active { transform: translateY(1px); }
 
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .btn-secondary {
-      background: #e8eefc;
-      color: #153e90;
-    }
-
-    .btn-danger {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .btn-success {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .btn-light {
-      background: #f3f4f6;
-      color: #374151;
-    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #e8eefc; color: #153e90; }
+    .btn-danger { background: #fee2e2; color: #991b1b; }
+    .btn-success { background: #d1fae5; color: #065f46; }
+    .btn-light { background: #f3f4f6; color: #374151; }
 
     .section-note {
       margin-top: 6px;
@@ -236,9 +205,7 @@
       margin-bottom: 6px;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .auth-box {
       max-width: 460px;
@@ -268,13 +235,8 @@
       font-weight: 700;
     }
 
-    .status.ok {
-      color: var(--success);
-    }
-
-    .status.err {
-      color: var(--danger);
-    }
+    .status.ok { color: var(--success); }
+    .status.err { color: var(--danger); }
 
     .small-actions {
       display: flex;
@@ -318,8 +280,8 @@
     <div class="card">
       <h2>1. Global settings (default)</h2>
       <p class="muted">
-        These defaults are used by the student game unless a set or workflow overrides them.
-        Scoring and tile speed are set here by the teacher and are not stored in <code>sentences.json</code>.
+        These defaults are used by the student game. Sentence material stays in <code>sentences.json</code>,
+        while scoring and tile speed are controlled here.
       </p>
 
       <div class="grid">
@@ -480,10 +442,6 @@
       <div class="divider"></div>
 
       <h3>Scoring</h3>
-      <p class="section-note">
-        These are teacher-controlled defaults. They can be changed any time without touching <code>sentences.json</code>.
-      </p>
-
       <div class="grid">
         <div class="col-4">
           <label for="pointsForCompletion">Points for sentence completion</label>
@@ -498,7 +456,7 @@
         <div class="col-4">
           <label for="penaltyWrongClick">Penalty for wrong click</label>
           <input type="number" id="penaltyWrongClick" step="1" />
-          <div class="help">Use a negative value for penalty, e.g. <code>-1</code>.</div>
+          <div class="help">Use a negative value, e.g. <code>-1</code>.</div>
         </div>
 
         <div class="col-4">
@@ -513,10 +471,6 @@
       </div>
 
       <h3>Tile spawn</h3>
-      <p class="section-note">
-        The old Slow / Normal / Fast selector is replaced with a direct tiles-per-minute slider.
-      </p>
-
       <div class="grid">
         <div class="col-12">
           <label for="tilesPerMinute">Tiles per minute</label>
@@ -524,7 +478,7 @@
             <input type="range" id="tilesPerMinute" min="5" max="120" step="1" />
             <div class="range-value" id="tilesPerMinuteValue">35 tiles/min</div>
           </div>
-          <div class="help">Recommended range: 5-120 tiles per minute.</div>
+          <div class="help">The old Slow / Normal / Fast setting is replaced with a direct slider.</div>
         </div>
       </div>
 
@@ -537,7 +491,11 @@
     </div>
 
     <div class="card">
-      <h2>2. New set</h2>
+      <h2>2. Local sets (optional)</h2>
+      <p class="muted">
+        Your main material should stay in <code>sentences.json</code>. This section is only for optional local sets
+        that you want to add quickly in the browser.
+      </p>
 
       <div class="grid">
         <div class="col-3">
@@ -601,13 +559,12 @@
           <textarea id="sentencePairs" placeholder="One pair per line, e.g.
 I am learning English. = Uczę się angielskiego.
 How are you? = Jak się masz?"></textarea>
-          <div class="help">Format: source = target. One pair per line.</div>
         </div>
       </div>
 
       <div class="footer-actions">
         <button class="btn btn-secondary" id="importCsvBtn">Import CSV</button>
-        <button class="btn btn-success" id="addSetBtn">Add set</button>
+        <button class="btn btn-success" id="addSetBtn">Add local set</button>
         <button class="btn btn-light" id="clearSetFieldsBtn">Clear fields</button>
       </div>
 
@@ -615,7 +572,7 @@ How are you? = Jak się masz?"></textarea>
     </div>
 
     <div class="card">
-      <h2>3. Set filters</h2>
+      <h2>3. Local set filters</h2>
 
       <div class="grid">
         <div class="col-6">
@@ -636,27 +593,31 @@ How are you? = Jak się masz?"></textarea>
     </div>
 
     <div class="card">
-      <h2>4. Translation sets</h2>
+      <h2>4. Local translation sets</h2>
       <div class="small-actions">
         <button class="btn btn-secondary" id="addEmptySetBtn">Add empty set</button>
         <button class="btn btn-light" id="sortSetsBtn">Sort sets A-Z</button>
-        <button class="btn btn-danger" id="removeAllSetsBtn">Remove all sets</button>
+        <button class="btn btn-danger" id="removeAllSetsBtn">Remove all local sets</button>
       </div>
 
       <div class="divider"></div>
-
       <div id="setsList" class="list"></div>
     </div>
 
     <div class="card">
-      <h2>5. JSON preview</h2>
+      <h2>5. JSON preview (local sets only)</h2>
+      <p class="muted">
+        This preview contains the current global settings and optional local sets from the browser.
+        Your remote <code>sentences.json</code> is loaded by the student game separately.
+      </p>
+
       <textarea id="jsonPreview" class="json-box"></textarea>
 
       <div class="footer-actions">
         <button class="btn btn-secondary" id="refreshJsonBtn">Refresh JSON</button>
-        <button class="btn btn-success" id="downloadJsonBtn">Download sentences.json</button>
+        <button class="btn btn-success" id="downloadJsonBtn">Download local JSON</button>
         <button class="btn btn-light" id="copyJsonBtn">Copy JSON</button>
-        <button class="btn btn-secondary" id="importExistingJsonBtn">Import existing JSON</button>
+        <button class="btn btn-secondary" id="importExistingJsonBtn">Import local JSON</button>
       </div>
 
       <div id="jsonStatus" class="status"></div>
@@ -669,7 +630,7 @@ How are you? = Jak się masz?"></textarea>
       teacherData: 'new_quiz_teacher_data'
     };
 
-    const TEACHER_PASSWORD = '1234';
+    const TEACHER_PASSWORD = '1111';
 
     const DEFAULT_DATA = {
       globalSettings: {
@@ -692,7 +653,6 @@ How are you? = Jak się masz?"></textarea>
         showSolution: true,
         translationInstruction: true,
         soundEnabled: true,
-
         pointsForCompletion: 10,
         bonusNoMistakes: 20,
         penaltyWrongClick: -1,
@@ -784,36 +744,28 @@ How are you? = Jak się masz?"></textarea>
         const raw = localStorage.getItem(STORAGE_KEYS.teacherData);
         if (!raw) return cloneDefaultData();
         const parsed = JSON.parse(raw);
-        return mergeTeacherDataWithDefaults(parsed);
+        return {
+          globalSettings: {
+            ...cloneDefaultData().globalSettings,
+            ...(parsed.globalSettings || {})
+          },
+          sets: Array.isArray(parsed.sets) ? parsed.sets : []
+        };
       } catch (e) {
         return cloneDefaultData();
       }
-    }
-
-    function mergeTeacherDataWithDefaults(data) {
-      const base = cloneDefaultData();
-
-      const merged = {
-        globalSettings: {
-          ...base.globalSettings,
-          ...(data && data.globalSettings ? data.globalSettings : {})
-        },
-        sets: Array.isArray(data && data.sets) ? data.sets : []
-      };
-
-      return merged;
     }
 
     function saveTeacherData() {
       localStorage.setItem(STORAGE_KEYS.teacherData, JSON.stringify(teacherData));
     }
 
-    function setStatus(el, message, ok = true) {
+    function setStatusMsg(el, message, ok = true) {
       el.textContent = message || '';
       el.className = 'status ' + (ok ? 'ok' : 'err');
     }
 
-    function clearStatus(el) {
+    function clearStatusMsg(el) {
       el.textContent = '';
       el.className = 'status';
     }
@@ -884,7 +836,6 @@ How are you? = Jak się masz?"></textarea>
         showSolution: boolFromString(showSolution.value),
         translationInstruction: boolFromString(translationInstruction.value),
         soundEnabled: boolFromString(soundEnabled.value),
-
         pointsForCompletion: numberFromInput(pointsForCompletion, 10),
         bonusNoMistakes: numberFromInput(bonusNoMistakes, 20),
         penaltyWrongClick: numberFromInput(penaltyWrongClick, -1),
@@ -898,7 +849,7 @@ How are you? = Jak się masz?"></textarea>
       teacherData.globalSettings = collectGlobalSettingsFromForm();
       saveTeacherData();
       refreshJsonPreview();
-      setStatus(globalSettingsStatus, 'Global settings saved.', true);
+      setStatusMsg(globalSettingsStatus, 'Global settings saved.', true);
     }
 
     function restoreGlobalDefaults() {
@@ -906,26 +857,19 @@ How are you? = Jak się masz?"></textarea>
       saveTeacherData();
       renderGlobalSettings();
       refreshJsonPreview();
-      setStatus(globalSettingsStatus, 'Global settings restored to defaults.', true);
+      setStatusMsg(globalSettingsStatus, 'Global settings restored to defaults.', true);
     }
 
     function parseSentencePairs(text) {
-      const lines = text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(Boolean);
-
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
       const items = [];
 
       for (const line of lines) {
         const parts = line.split('=');
         if (parts.length < 2) continue;
-
         const source = parts[0].trim();
         const target = parts.slice(1).join('=').trim();
-
         if (!source || !target) continue;
-
         items.push({ source, target });
       }
 
@@ -942,11 +886,11 @@ How are you? = Jak się masz?"></textarea>
       setDistractorCount.value = '0';
       setDistractorType.value = 'automatic';
       sentencePairs.value = '';
-      clearStatus(setStatus);
+      clearStatusMsg(setStatus);
     }
 
     function addSet() {
-      const id = setId.value.trim() || `set_${Date.now()}`;
+      const id = setId.value.trim() || `local_set_${Date.now()}`;
       const name = setName.value.trim();
       const classGroup = setClassGroup.value.trim();
       const theme = setTheme.value.trim();
@@ -957,12 +901,12 @@ How are you? = Jak się masz?"></textarea>
       const pairs = parseSentencePairs(sentencePairs.value);
 
       if (!name) {
-        setStatus(setStatus, 'Set name is required.', false);
+        setStatusMsg(setStatus, 'Set name is required.', false);
         return;
       }
 
       if (!pairs.length) {
-        setStatus(setStatus, 'Add at least one valid sentence pair.', false);
+        setStatusMsg(setStatus, 'Add at least one valid sentence pair.', false);
         return;
       }
 
@@ -990,7 +934,7 @@ How are you? = Jak się masz?"></textarea>
       saveTeacherData();
       renderSets();
       refreshJsonPreview();
-      setStatus(setStatus, 'Set saved.', true);
+      setStatusMsg(setStatus, 'Local set saved.', true);
       clearSetForm();
     }
 
@@ -1009,7 +953,7 @@ How are you? = Jak się masz?"></textarea>
       }
 
       if (!visibleSets.length) {
-        setsList.innerHTML = '<div class="muted">No sets found.</div>';
+        setsList.innerHTML = '<div class="muted">No local sets found.</div>';
         return;
       }
 
@@ -1046,16 +990,14 @@ How are you? = Jak się masz?"></textarea>
       setDistractorMode.value = set.distractorSettings?.mode || 'inherit';
       setDistractorCount.value = String(set.distractorSettings?.count ?? 0);
       setDistractorType.value = set.distractorSettings?.type || 'automatic';
-      sentencePairs.value = (set.items || [])
-        .map(item => `${item.source} = ${item.target}`)
-        .join('\n');
+      sentencePairs.value = (set.items || []).map(item => `${item.source} = ${item.target}`).join('\n');
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setStatus(setStatus, 'Set loaded into the form for editing.', true);
+      setStatusMsg(setStatus, 'Local set loaded for editing.', true);
     }
 
     function deleteSet(id) {
-      if (!confirm('Remove this set?')) return;
+      if (!confirm('Remove this local set?')) return;
       teacherData.sets = teacherData.sets.filter(s => s.id !== id);
       saveTeacherData();
       renderSets();
@@ -1063,10 +1005,10 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function addEmptySet() {
-      const id = `set_${Date.now()}`;
+      const id = `local_set_${Date.now()}`;
       teacherData.sets.push({
         id,
-        name: 'New set',
+        name: 'New local set',
         classGroup: '',
         theme: '',
         buildMode: 'words',
@@ -1090,14 +1032,14 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function removeAllSets() {
-      if (!confirm('Remove all sets?')) return;
+      if (!confirm('Remove all local sets?')) return;
       teacherData.sets = [];
       saveTeacherData();
       renderSets();
       refreshJsonPreview();
     }
 
-    function exportDataForJson() {
+    function exportLocalJson() {
       return {
         globalSettings: teacherData.globalSettings,
         sets: teacherData.sets
@@ -1105,7 +1047,7 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function refreshJsonPreview() {
-      jsonPreview.value = JSON.stringify(exportDataForJson(), null, 2);
+      jsonPreview.value = JSON.stringify(exportLocalJson(), null, 2);
     }
 
     function downloadJson() {
@@ -1113,30 +1055,29 @@ How are you? = Jak się masz?"></textarea>
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'sentences.json';
+      a.download = 'local-teacher-data.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setStatus(jsonStatus, 'JSON downloaded.', true);
+      setStatusMsg(jsonStatus, 'Local JSON downloaded.', true);
     }
 
     async function copyJson() {
       try {
         await navigator.clipboard.writeText(jsonPreview.value);
-        setStatus(jsonStatus, 'JSON copied to clipboard.', true);
+        setStatusMsg(jsonStatus, 'JSON copied to clipboard.', true);
       } catch (e) {
-        setStatus(jsonStatus, 'Copy failed.', false);
+        setStatusMsg(jsonStatus, 'Copy failed.', false);
       }
     }
 
     function importExistingJson() {
-      const raw = prompt('Paste existing JSON here:');
+      const raw = prompt('Paste local JSON here:');
       if (!raw) return;
 
       try {
         const parsed = JSON.parse(raw);
-
         teacherData = {
           globalSettings: {
             ...cloneDefaultData().globalSettings,
@@ -1149,9 +1090,9 @@ How are you? = Jak się masz?"></textarea>
         renderGlobalSettings();
         renderSets();
         refreshJsonPreview();
-        setStatus(jsonStatus, 'Existing JSON imported.', true);
+        setStatusMsg(jsonStatus, 'Local JSON imported.', true);
       } catch (e) {
-        setStatus(jsonStatus, 'Invalid JSON.', false);
+        setStatusMsg(jsonStatus, 'Invalid JSON.', false);
       }
     }
 
@@ -1173,7 +1114,7 @@ How are you? = Jak się masz?"></textarea>
       }
 
       sentencePairs.value = mapped.join('\n');
-      setStatus(setStatus, 'CSV imported into sentence pairs.', true);
+      setStatusMsg(setStatus, 'CSV imported.', true);
     }
 
     function applyFilters() {
@@ -1200,12 +1141,11 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function enterPanel() {
-      const pass = teacherPassword.value;
-      if (pass === TEACHER_PASSWORD) {
+      if (teacherPassword.value === TEACHER_PASSWORD) {
         localStorage.setItem(STORAGE_KEYS.teacherAuth, '1');
         showPanel();
       } else {
-        setStatus(authStatus, 'Incorrect password.', false);
+        setStatusMsg(authStatus, 'Incorrect password.', false);
       }
     }
 
@@ -1216,7 +1156,7 @@ How are you? = Jak się masz?"></textarea>
       renderGlobalSettings();
       renderSets();
       refreshJsonPreview();
-      clearStatus(authStatus);
+      clearStatusMsg(authStatus);
     }
 
     function logout() {
