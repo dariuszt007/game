@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Panel</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #d9e2f0;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --danger: #dc2626;
+      --success: #059669;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      margin-top: 24px;
+      font-size: 18px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .col-12 { grid-column: span 12; }
+    .col-8  { grid-column: span 8; }
+    .col-6  { grid-column: span 6; }
+    .col-4  { grid-column: span 4; }
+    .col-3  { grid-column: span 3; }
+    .col-2  { grid-column: span 2; }
+
+    @media (max-width: 900px) {
+      .col-8, .col-6, .col-4, .col-3, .col-2 {
+        grid-column: span 12;
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range-value {
+      min-width: 130px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.06s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:hover {
+      opacity: 0.96;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e8eefc;
+      color: #153e90;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .btn-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .btn-light {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .section-note {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 18px 0;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .set-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .set-item-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #3730a3;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .auth-box {
+      max-width: 460px;
+      margin: 60px auto;
+    }
+
+    .json-box {
+      min-height: 280px;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .help {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .status {
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status.ok {
+      color: var(--success);
+    }
+
+    .status.err {
+      color: var(--danger);
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="authView" class="wrap auth-box">
+    <div class="card">
+      <h1>Teacher panel access</h1>
+      <p class="muted">Enter the password to open the panel.</p>
+
+      <div class="grid">
+        <div class="col-12">
+          <label for="teacherPassword">Password</label>
+          <input type="password" id="teacherPassword" placeholder="Enter password" />
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-primary" id="enterTeacherPanelBtn">Enter</button>
+        <a class="btn btn-light" href="./">Back to game</a>
+      </div>
+
+      <div id="authStatus" class="status"></div>
+    </div>
+  </div>
+
+  <div id="panelView" class="wrap hidden">
+    <div class="topbar">
+      <h1>Teacher Panel</h1>
+      <div class="topbar-actions">
+        <a class="btn btn-secondary" href="./" target="_blank" rel="noopener">Open student game</a>
+        <button class="btn btn-light" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Global settings (default)</h2>
+      <p class="muted">
+        These defaults are used by the student game unless a set or workflow overrides them.
+        Scoring and tile speed are set here by the teacher and are not stored in <code>sentences.json</code>.
+      </p>
+
+      <div class="grid">
+        <div class="col-6">
+          <label for="gameTitle">Game title</label>
+          <input type="text" id="gameTitle" />
+        </div>
+
+        <div class="col-3">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="defaultClassGroup">Default class / group</label>
+          <input type="text" id="defaultClassGroup" />
+        </div>
+
+        <div class="col-3">
+          <label for="sourceLanguage">Source language</label>
+          <input type="text" id="sourceLanguage" />
+        </div>
+
+        <div class="col-3">
+          <label for="targetLanguage">Target language</label>
+          <input type="text" id="targetLanguage" />
+        </div>
+
+        <div class="col-3">
+          <label for="swapLanguages">Swap languages in all sets</label>
+          <select id="swapLanguages">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="timerMode">Timer</label>
+          <select id="timerMode">
+            <option value="0">No timer</option>
+            <option value="30">30 seconds</option>
+            <option value="45">45 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="90">90 seconds</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="maxMistakes">Maximum mistakes</label>
+          <select id="maxMistakes">
+            <option value="0">No limit</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="sentenceOrder">Sentence order</label>
+          <select id="sentenceOrder">
+            <option value="in-order">In order</option>
+            <option value="random">Random</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="autoNext">Auto next</label>
+          <select id="autoNext">
+            <option value="0">Disabled</option>
+            <option value="2">2 seconds</option>
+            <option value="3">3 seconds</option>
+            <option value="5">5 seconds</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="defaultDistractorCount">Default distractor count</label>
+          <select id="defaultDistractorCount">
+            <option value="0">None</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="defaultDistractorType">Default distractor type</label>
+          <select id="defaultDistractorType">
+            <option value="automatic">Automatic</option>
+            <option value="letters">Letters only</option>
+            <option value="material">Only from material</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="punctuationMode">Punctuation</label>
+          <select id="punctuationMode">
+            <option value="automatic">Automatic</option>
+            <option value="keep">Keep</option>
+            <option value="remove">Remove</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="studentNameRequired">Student name required</label>
+          <select id="studentNameRequired">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="showSetPickerAtStart">Show set picker at start</label>
+          <select id="showSetPickerAtStart">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="hintEnabled">Hint</label>
+          <select id="hintEnabled">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="showSolution">Show solution</label>
+          <select id="showSolution">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="translationInstruction">Translation instruction</label>
+          <select id="translationInstruction">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="col-3">
+          <label for="soundEnabled">Sound</label>
+          <select id="soundEnabled">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Scoring</h3>
+      <p class="section-note">
+        These are teacher-controlled defaults. They can be changed any time without touching <code>sentences.json</code>.
+      </p>
+
+      <div class="grid">
+        <div class="col-4">
+          <label for="pointsForCompletion">Points for sentence completion</label>
+          <input type="number" id="pointsForCompletion" step="1" />
+        </div>
+
+        <div class="col-4">
+          <label for="bonusNoMistakes">Bonus for no mistakes</label>
+          <input type="number" id="bonusNoMistakes" step="1" />
+        </div>
+
+        <div class="col-4">
+          <label for="penaltyWrongClick">Penalty for wrong click</label>
+          <input type="number" id="penaltyWrongClick" step="1" />
+          <div class="help">Use a negative value for penalty, e.g. <code>-1</code>.</div>
+        </div>
+
+        <div class="col-4">
+          <label for="bonusFastCompletion">Fast completion bonus</label>
+          <input type="number" id="bonusFastCompletion" step="1" />
+        </div>
+
+        <div class="col-4">
+          <label for="fastCompletionSeconds">Fast completion threshold (seconds)</label>
+          <input type="number" id="fastCompletionSeconds" min="1" step="1" />
+        </div>
+      </div>
+
+      <h3>Tile spawn</h3>
+      <p class="section-note">
+        The old Slow / Normal / Fast selector is replaced with a direct tiles-per-minute slider.
+      </p>
+
+      <div class="grid">
+        <div class="col-12">
+          <label for="tilesPerMinute">Tiles per minute</label>
+          <div class="range-row">
+            <input type="range" id="tilesPerMinute" min="5" max="120" step="1" />
+            <div class="range-value" id="tilesPerMinuteValue">35 tiles/min</div>
+          </div>
+          <div class="help">Recommended range: 5-120 tiles per minute.</div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-primary" id="saveGlobalSettingsBtn">Save global settings</button>
+        <button class="btn btn-light" id="resetGlobalDefaultsBtn">Restore defaults</button>
+      </div>
+
+      <div id="globalSettingsStatus" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. New set</h2>
+
+      <div class="grid">
+        <div class="col-3">
+          <label for="setId">Set ID</label>
+          <input type="text" id="setId" />
+        </div>
+
+        <div class="col-5">
+          <label for="setName">Set name</label>
+          <input type="text" id="setName" />
+        </div>
+
+        <div class="col-4">
+          <label for="setClassGroup">Class / group</label>
+          <input type="text" id="setClassGroup" />
+        </div>
+
+        <div class="col-4">
+          <label for="setTheme">Theme</label>
+          <input type="text" id="setTheme" />
+        </div>
+
+        <div class="col-4">
+          <label for="buildMode">Build mode</label>
+          <select id="buildMode">
+            <option value="words">Build with words</option>
+            <option value="letters">Build with letters</option>
+          </select>
+        </div>
+
+        <div class="col-4">
+          <label for="setDistractorMode">Distractor settings</label>
+          <select id="setDistractorMode">
+            <option value="inherit">Inherit global</option>
+            <option value="own">Use own</option>
+          </select>
+        </div>
+
+        <div class="col-4">
+          <label for="setDistractorCount">Distractor count</label>
+          <select id="setDistractorCount">
+            <option value="0">None</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+
+        <div class="col-4">
+          <label for="setDistractorType">Distractor type</label>
+          <select id="setDistractorType">
+            <option value="automatic">Automatic</option>
+            <option value="letters">Letters only</option>
+            <option value="material">Only from material</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label for="sentencePairs">Sentence pairs</label>
+          <textarea id="sentencePairs" placeholder="One pair per line, e.g.
+I am learning English. = Uczę się angielskiego.
+How are you? = Jak się masz?"></textarea>
+          <div class="help">Format: source = target. One pair per line.</div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-secondary" id="importCsvBtn">Import CSV</button>
+        <button class="btn btn-success" id="addSetBtn">Add set</button>
+        <button class="btn btn-light" id="clearSetFieldsBtn">Clear fields</button>
+      </div>
+
+      <div id="setStatus" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>3. Set filters</h2>
+
+      <div class="grid">
+        <div class="col-6">
+          <label for="filterClassGroup">Filter by class / group</label>
+          <input type="text" id="filterClassGroup" />
+        </div>
+
+        <div class="col-6">
+          <label for="filterTheme">Filter by theme</label>
+          <input type="text" id="filterTheme" />
+        </div>
+      </div>
+
+      <div class="small-actions">
+        <button class="btn btn-secondary" id="applyFiltersBtn">Apply filters</button>
+        <button class="btn btn-light" id="clearFiltersBtn">Clear filters</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Translation sets</h2>
+      <div class="small-actions">
+        <button class="btn btn-secondary" id="addEmptySetBtn">Add empty set</button>
+        <button class="btn btn-light" id="sortSetsBtn">Sort sets A-Z</button>
+        <button class="btn btn-danger" id="removeAllSetsBtn">Remove all sets</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="setsList" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>5. JSON preview</h2>
+      <textarea id="jsonPreview" class="json-box"></textarea>
+
+      <div class="footer-actions">
+        <button class="btn btn-secondary" id="refreshJsonBtn">Refresh JSON</button>
+        <button class="btn btn-success" id="downloadJsonBtn">Download sentences.json</button>
+        <button class="btn btn-light" id="copyJsonBtn">Copy JSON</button>
+        <button class="btn btn-secondary" id="importExistingJsonBtn">Import existing JSON</button>
+      </div>
+
+      <div id="jsonStatus" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      teacherAuth: 'new_quiz_teacher_auth',
+      teacherData: 'new_quiz_teacher_data'
+    };
+
+    const TEACHER_PASSWORD = '1234';
+
+    const DEFAULT_DATA = {
+      globalSettings: {
+        gameTitle: 'Gra tłumaczeniowa',
+        difficulty: 'easy',
+        defaultClassGroup: '',
+        sourceLanguage: 'Polish',
+        targetLanguage: 'English',
+        swapLanguages: false,
+        timerMode: 0,
+        maxMistakes: 0,
+        sentenceOrder: 'in-order',
+        autoNext: 0,
+        defaultDistractorCount: 4,
+        defaultDistractorType: 'automatic',
+        punctuationMode: 'automatic',
+        studentNameRequired: true,
+        showSetPickerAtStart: true,
+        hintEnabled: true,
+        showSolution: true,
+        translationInstruction: true,
+        soundEnabled: true,
+
+        pointsForCompletion: 10,
+        bonusNoMistakes: 20,
+        penaltyWrongClick: -1,
+        bonusFastCompletion: 1,
+        fastCompletionSeconds: 10,
+        tilesPerMinute: 35
+      },
+      sets: []
+    };
+
+    const authView = document.getElementById('authView');
+    const panelView = document.getElementById('panelView');
+    const teacherPassword = document.getElementById('teacherPassword');
+    const enterTeacherPanelBtn = document.getElementById('enterTeacherPanelBtn');
+    const authStatus = document.getElementById('authStatus');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const gameTitle = document.getElementById('gameTitle');
+    const difficulty = document.getElementById('difficulty');
+    const defaultClassGroup = document.getElementById('defaultClassGroup');
+    const sourceLanguage = document.getElementById('sourceLanguage');
+    const targetLanguage = document.getElementById('targetLanguage');
+    const swapLanguages = document.getElementById('swapLanguages');
+    const timerMode = document.getElementById('timerMode');
+    const maxMistakes = document.getElementById('maxMistakes');
+    const sentenceOrder = document.getElementById('sentenceOrder');
+    const autoNext = document.getElementById('autoNext');
+    const defaultDistractorCount = document.getElementById('defaultDistractorCount');
+    const defaultDistractorType = document.getElementById('defaultDistractorType');
+    const punctuationMode = document.getElementById('punctuationMode');
+    const studentNameRequired = document.getElementById('studentNameRequired');
+    const showSetPickerAtStart = document.getElementById('showSetPickerAtStart');
+    const hintEnabled = document.getElementById('hintEnabled');
+    const showSolution = document.getElementById('showSolution');
+    const translationInstruction = document.getElementById('translationInstruction');
+    const soundEnabled = document.getElementById('soundEnabled');
+
+    const pointsForCompletion = document.getElementById('pointsForCompletion');
+    const bonusNoMistakes = document.getElementById('bonusNoMistakes');
+    const penaltyWrongClick = document.getElementById('penaltyWrongClick');
+    const bonusFastCompletion = document.getElementById('bonusFastCompletion');
+    const fastCompletionSeconds = document.getElementById('fastCompletionSeconds');
+    const tilesPerMinute = document.getElementById('tilesPerMinute');
+    const tilesPerMinuteValue = document.getElementById('tilesPerMinuteValue');
+
+    const saveGlobalSettingsBtn = document.getElementById('saveGlobalSettingsBtn');
+    const resetGlobalDefaultsBtn = document.getElementById('resetGlobalDefaultsBtn');
+    const globalSettingsStatus = document.getElementById('globalSettingsStatus');
+
+    const setId = document.getElementById('setId');
+    const setName = document.getElementById('setName');
+    const setClassGroup = document.getElementById('setClassGroup');
+    const setTheme = document.getElementById('setTheme');
+    const buildMode = document.getElementById('buildMode');
+    const setDistractorMode = document.getElementById('setDistractorMode');
+    const setDistractorCount = document.getElementById('setDistractorCount');
+    const setDistractorType = document.getElementById('setDistractorType');
+    const sentencePairs = document.getElementById('sentencePairs');
+    const importCsvBtn = document.getElementById('importCsvBtn');
+    const addSetBtn = document.getElementById('addSetBtn');
+    const clearSetFieldsBtn = document.getElementById('clearSetFieldsBtn');
+    const setStatus = document.getElementById('setStatus');
+
+    const filterClassGroup = document.getElementById('filterClassGroup');
+    const filterTheme = document.getElementById('filterTheme');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+    const addEmptySetBtn = document.getElementById('addEmptySetBtn');
+    const sortSetsBtn = document.getElementById('sortSetsBtn');
+    const removeAllSetsBtn = document.getElementById('removeAllSetsBtn');
+    const setsList = document.getElementById('setsList');
+
+    const jsonPreview = document.getElementById('jsonPreview');
+    const refreshJsonBtn = document.getElementById('refreshJsonBtn');
+    const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+    const copyJsonBtn = document.getElementById('copyJsonBtn');
+    const importExistingJsonBtn = document.getElementById('importExistingJsonBtn');
+    const jsonStatus = document.getElementById('jsonStatus');
+
+    let teacherData = loadTeacherData();
+
+    function cloneDefaultData() {
+      return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+
+    function loadTeacherData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.teacherData);
+        if (!raw) return cloneDefaultData();
+        const parsed = JSON.parse(raw);
+        return mergeTeacherDataWithDefaults(parsed);
+      } catch (e) {
+        return cloneDefaultData();
+      }
+    }
+
+    function mergeTeacherDataWithDefaults(data) {
+      const base = cloneDefaultData();
+
+      const merged = {
+        globalSettings: {
+          ...base.globalSettings,
+          ...(data && data.globalSettings ? data.globalSettings : {})
+        },
+        sets: Array.isArray(data && data.sets) ? data.sets : []
+      };
+
+      return merged;
+    }
+
+    function saveTeacherData() {
+      localStorage.setItem(STORAGE_KEYS.teacherData, JSON.stringify(teacherData));
+    }
+
+    function setStatus(el, message, ok = true) {
+      el.textContent = message || '';
+      el.className = 'status ' + (ok ? 'ok' : 'err');
+    }
+
+    function clearStatus(el) {
+      el.textContent = '';
+      el.className = 'status';
+    }
+
+    function boolFromString(value) {
+      return value === 'true';
+    }
+
+    function numberFromInput(input, fallback = 0) {
+      const n = Number(input.value);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function updateTilesPerMinuteLabel() {
+      tilesPerMinuteValue.textContent = `${tilesPerMinute.value} tiles/min`;
+    }
+
+    function renderGlobalSettings() {
+      const s = teacherData.globalSettings;
+
+      gameTitle.value = s.gameTitle ?? '';
+      difficulty.value = s.difficulty ?? 'easy';
+      defaultClassGroup.value = s.defaultClassGroup ?? '';
+      sourceLanguage.value = s.sourceLanguage ?? '';
+      targetLanguage.value = s.targetLanguage ?? '';
+      swapLanguages.value = String(!!s.swapLanguages);
+      timerMode.value = String(s.timerMode ?? 0);
+      maxMistakes.value = String(s.maxMistakes ?? 0);
+      sentenceOrder.value = s.sentenceOrder ?? 'in-order';
+      autoNext.value = String(s.autoNext ?? 0);
+      defaultDistractorCount.value = String(s.defaultDistractorCount ?? 4);
+      defaultDistractorType.value = s.defaultDistractorType ?? 'automatic';
+      punctuationMode.value = s.punctuationMode ?? 'automatic';
+      studentNameRequired.value = String(!!s.studentNameRequired);
+      showSetPickerAtStart.value = String(!!s.showSetPickerAtStart);
+      hintEnabled.value = String(!!s.hintEnabled);
+      showSolution.value = String(!!s.showSolution);
+      translationInstruction.value = String(!!s.translationInstruction);
+      soundEnabled.value = String(!!s.soundEnabled);
+
+      pointsForCompletion.value = s.pointsForCompletion ?? 10;
+      bonusNoMistakes.value = s.bonusNoMistakes ?? 20;
+      penaltyWrongClick.value = s.penaltyWrongClick ?? -1;
+      bonusFastCompletion.value = s.bonusFastCompletion ?? 1;
+      fastCompletionSeconds.value = s.fastCompletionSeconds ?? 10;
+      tilesPerMinute.value = s.tilesPerMinute ?? 35;
+      updateTilesPerMinuteLabel();
+    }
+
+    function collectGlobalSettingsFromForm() {
+      return {
+        gameTitle: gameTitle.value.trim(),
+        difficulty: difficulty.value,
+        defaultClassGroup: defaultClassGroup.value.trim(),
+        sourceLanguage: sourceLanguage.value.trim(),
+        targetLanguage: targetLanguage.value.trim(),
+        swapLanguages: boolFromString(swapLanguages.value),
+        timerMode: numberFromInput(timerMode, 0),
+        maxMistakes: numberFromInput(maxMistakes, 0),
+        sentenceOrder: sentenceOrder.value,
+        autoNext: numberFromInput(autoNext, 0),
+        defaultDistractorCount: numberFromInput(defaultDistractorCount, 4),
+        defaultDistractorType: defaultDistractorType.value,
+        punctuationMode: punctuationMode.value,
+        studentNameRequired: boolFromString(studentNameRequired.value),
+        showSetPickerAtStart: boolFromString(showSetPickerAtStart.value),
+        hintEnabled: boolFromString(hintEnabled.value),
+        showSolution: boolFromString(showSolution.value),
+        translationInstruction: boolFromString(translationInstruction.value),
+        soundEnabled: boolFromString(soundEnabled.value),
+
+        pointsForCompletion: numberFromInput(pointsForCompletion, 10),
+        bonusNoMistakes: numberFromInput(bonusNoMistakes, 20),
+        penaltyWrongClick: numberFromInput(penaltyWrongClick, -1),
+        bonusFastCompletion: numberFromInput(bonusFastCompletion, 1),
+        fastCompletionSeconds: Math.max(1, numberFromInput(fastCompletionSeconds, 10)),
+        tilesPerMinute: Math.min(120, Math.max(5, numberFromInput(tilesPerMinute, 35)))
+      };
+    }
+
+    function saveGlobalSettings() {
+      teacherData.globalSettings = collectGlobalSettingsFromForm();
+      saveTeacherData();
+      refreshJsonPreview();
+      setStatus(globalSettingsStatus, 'Global settings saved.', true);
+    }
+
+    function restoreGlobalDefaults() {
+      teacherData.globalSettings = JSON.parse(JSON.stringify(DEFAULT_DATA.globalSettings));
+      saveTeacherData();
+      renderGlobalSettings();
+      refreshJsonPreview();
+      setStatus(globalSettingsStatus, 'Global settings restored to defaults.', true);
+    }
+
+    function parseSentencePairs(text) {
+      const lines = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      const items = [];
+
+      for (const line of lines) {
+        const parts = line.split('=');
+        if (parts.length < 2) continue;
+
+        const source = parts[0].trim();
+        const target = parts.slice(1).join('=').trim();
+
+        if (!source || !target) continue;
+
+        items.push({ source, target });
+      }
+
+      return items;
+    }
+
+    function clearSetForm() {
+      setId.value = '';
+      setName.value = '';
+      setClassGroup.value = '';
+      setTheme.value = '';
+      buildMode.value = 'words';
+      setDistractorMode.value = 'inherit';
+      setDistractorCount.value = '0';
+      setDistractorType.value = 'automatic';
+      sentencePairs.value = '';
+      clearStatus(setStatus);
+    }
+
+    function addSet() {
+      const id = setId.value.trim() || `set_${Date.now()}`;
+      const name = setName.value.trim();
+      const classGroup = setClassGroup.value.trim();
+      const theme = setTheme.value.trim();
+      const mode = buildMode.value;
+      const distractorMode = setDistractorMode.value;
+      const distractorCount = Number(setDistractorCount.value);
+      const distractorType = setDistractorType.value;
+      const pairs = parseSentencePairs(sentencePairs.value);
+
+      if (!name) {
+        setStatus(setStatus, 'Set name is required.', false);
+        return;
+      }
+
+      if (!pairs.length) {
+        setStatus(setStatus, 'Add at least one valid sentence pair.', false);
+        return;
+      }
+
+      const setObj = {
+        id,
+        name,
+        classGroup,
+        theme,
+        buildMode: mode,
+        distractorSettings: {
+          mode: distractorMode,
+          count: distractorCount,
+          type: distractorType
+        },
+        items: pairs
+      };
+
+      const existingIndex = teacherData.sets.findIndex(s => s.id === id);
+      if (existingIndex >= 0) {
+        teacherData.sets[existingIndex] = setObj;
+      } else {
+        teacherData.sets.push(setObj);
+      }
+
+      saveTeacherData();
+      renderSets();
+      refreshJsonPreview();
+      setStatus(setStatus, 'Set saved.', true);
+      clearSetForm();
+    }
+
+    function renderSets() {
+      const classFilter = filterClassGroup.value.trim().toLowerCase();
+      const themeFilter = filterTheme.value.trim().toLowerCase();
+
+      let visibleSets = [...teacherData.sets];
+
+      if (classFilter) {
+        visibleSets = visibleSets.filter(s => (s.classGroup || '').toLowerCase().includes(classFilter));
+      }
+
+      if (themeFilter) {
+        visibleSets = visibleSets.filter(s => (s.theme || '').toLowerCase().includes(themeFilter));
+      }
+
+      if (!visibleSets.length) {
+        setsList.innerHTML = '<div class="muted">No sets found.</div>';
+        return;
+      }
+
+      setsList.innerHTML = visibleSets.map(set => {
+        const count = Array.isArray(set.items) ? set.items.length : 0;
+        return `
+          <div class="set-item">
+            <div class="set-item-title">${escapeHtml(set.name || '')}</div>
+            <div>
+              <span class="pill">ID: ${escapeHtml(set.id || '')}</span>
+              <span class="pill">Class: ${escapeHtml(set.classGroup || '-')}</span>
+              <span class="pill">Theme: ${escapeHtml(set.theme || '-')}</span>
+              <span class="pill">Mode: ${escapeHtml(set.buildMode || 'words')}</span>
+              <span class="pill">Items: ${count}</span>
+            </div>
+            <div class="small-actions">
+              <button class="btn btn-secondary" onclick="editSet('${escapeJs(set.id)}')">Edit</button>
+              <button class="btn btn-danger" onclick="deleteSet('${escapeJs(set.id)}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function editSet(id) {
+      const set = teacherData.sets.find(s => s.id === id);
+      if (!set) return;
+
+      setId.value = set.id || '';
+      setName.value = set.name || '';
+      setClassGroup.value = set.classGroup || '';
+      setTheme.value = set.theme || '';
+      buildMode.value = set.buildMode || 'words';
+      setDistractorMode.value = set.distractorSettings?.mode || 'inherit';
+      setDistractorCount.value = String(set.distractorSettings?.count ?? 0);
+      setDistractorType.value = set.distractorSettings?.type || 'automatic';
+      sentencePairs.value = (set.items || [])
+        .map(item => `${item.source} = ${item.target}`)
+        .join('\n');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setStatus(setStatus, 'Set loaded into the form for editing.', true);
+    }
+
+    function deleteSet(id) {
+      if (!confirm('Remove this set?')) return;
+      teacherData.sets = teacherData.sets.filter(s => s.id !== id);
+      saveTeacherData();
+      renderSets();
+      refreshJsonPreview();
+    }
+
+    function addEmptySet() {
+      const id = `set_${Date.now()}`;
+      teacherData.sets.push({
+        id,
+        name: 'New set',
+        classGroup: '',
+        theme: '',
+        buildMode: 'words',
+        distractorSettings: {
+          mode: 'inherit',
+          count: 0,
+          type: 'automatic'
+        },
+        items: []
+      });
+      saveTeacherData();
+      renderSets();
+      refreshJsonPreview();
+    }
+
+    function sortSetsAZ() {
+      teacherData.sets.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pl'));
+      saveTeacherData();
+      renderSets();
+      refreshJsonPreview();
+    }
+
+    function removeAllSets() {
+      if (!confirm('Remove all sets?')) return;
+      teacherData.sets = [];
+      saveTeacherData();
+      renderSets();
+      refreshJsonPreview();
+    }
+
+    function exportDataForJson() {
+      return {
+        globalSettings: teacherData.globalSettings,
+        sets: teacherData.sets
+      };
+    }
+
+    function refreshJsonPreview() {
+      jsonPreview.value = JSON.stringify(exportDataForJson(), null, 2);
+    }
+
+    function downloadJson() {
+      const blob = new Blob([jsonPreview.value], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sentences.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(jsonStatus, 'JSON downloaded.', true);
+    }
+
+    async function copyJson() {
+      try {
+        await navigator.clipboard.writeText(jsonPreview.value);
+        setStatus(jsonStatus, 'JSON copied to clipboard.', true);
+      } catch (e) {
+        setStatus(jsonStatus, 'Copy failed.', false);
+      }
+    }
+
+    function importExistingJson() {
+      const raw = prompt('Paste existing JSON here:');
+      if (!raw) return;
+
+      try {
+        const parsed = JSON.parse(raw);
+
+        teacherData = {
+          globalSettings: {
+            ...cloneDefaultData().globalSettings,
+            ...(parsed.globalSettings || {})
+          },
+          sets: Array.isArray(parsed.sets) ? parsed.sets : []
+        };
+
+        saveTeacherData();
+        renderGlobalSettings();
+        renderSets();
+        refreshJsonPreview();
+        setStatus(jsonStatus, 'Existing JSON imported.', true);
+      } catch (e) {
+        setStatus(jsonStatus, 'Invalid JSON.', false);
+      }
+    }
+
+    function importCsv() {
+      const raw = prompt('Paste CSV lines as source,target');
+      if (!raw) return;
+
+      const lines = raw.split('\n').map(x => x.trim()).filter(Boolean);
+      const mapped = [];
+
+      for (const line of lines) {
+        const parts = line.split(',');
+        if (parts.length < 2) continue;
+        const source = parts[0].trim();
+        const target = parts.slice(1).join(',').trim();
+        if (source && target) {
+          mapped.push(`${source} = ${target}`);
+        }
+      }
+
+      sentencePairs.value = mapped.join('\n');
+      setStatus(setStatus, 'CSV imported into sentence pairs.', true);
+    }
+
+    function applyFilters() {
+      renderSets();
+    }
+
+    function clearFilters() {
+      filterClassGroup.value = '';
+      filterTheme.value = '';
+      renderSets();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeJs(value) {
+      return String(value).replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+    }
+
+    function enterPanel() {
+      const pass = teacherPassword.value;
+      if (pass === TEACHER_PASSWORD) {
+        localStorage.setItem(STORAGE_KEYS.teacherAuth, '1');
+        showPanel();
+      } else {
+        setStatus(authStatus, 'Incorrect password.', false);
+      }
+    }
+
+    function showPanel() {
+      authView.classList.add('hidden');
+      panelView.classList.remove('hidden');
+      teacherData = loadTeacherData();
+      renderGlobalSettings();
+      renderSets();
+      refreshJsonPreview();
+      clearStatus(authStatus);
+    }
+
+    function logout() {
+      localStorage.removeItem(STORAGE_KEYS.teacherAuth);
+      panelView.classList.add('hidden');
+      authView.classList.remove('hidden');
+      teacherPassword.value = '';
+    }
+
+    enterTeacherPanelBtn.addEventListener('click', enterPanel);
+    teacherPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') enterPanel();
+    });
+
+    logoutBtn.addEventListener('click', logout);
+
+    saveGlobalSettingsBtn.addEventListener('click', saveGlobalSettings);
+    resetGlobalDefaultsBtn.addEventListener('click', restoreGlobalDefaults);
+    tilesPerMinute.addEventListener('input', updateTilesPerMinuteLabel);
+
+    addSetBtn.addEventListener('click', addSet);
+    clearSetFieldsBtn.addEventListener('click', clearSetForm);
+    importCsvBtn.addEventListener('click', importCsv);
+
+    applyFiltersBtn.addEventListener('click', applyFilters);
+    clearFiltersBtn.addEventListener('click', clearFilters);
+
+    addEmptySetBtn.addEventListener('click', addEmptySet);
+    sortSetsBtn.addEventListener('click', sortSetsAZ);
+    removeAllSetsBtn.addEventListener('click', removeAllSets);
+
+    refreshJsonBtn.addEventListener('click', refreshJsonPreview);
+    downloadJsonBtn.addEventListener('click', downloadJson);
+    copyJsonBtn.addEventListener('click', copyJson);
+    importExistingJsonBtn.addEventListener('click', importExistingJson);
+
+    window.editSet = editSet;
+    window.deleteSet = deleteSet;
+
+    if (localStorage.getItem(STORAGE_KEYS.teacherAuth) === '1') {
+      showPanel();
+    }
+  </script>
+</body>
+</html>
