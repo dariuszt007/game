@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gra tłumaczeniowa</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #d9e2f0;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --danger: #dc2626;
+      --success: #059669;
+      --warning: #d97706;
+      --tile: #ffffff;
+      --tile-good: #dcfce7;
+      --tile-bad: #fee2e2;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .top-panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .top-panel.hidden-panels {
+      display: none;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .title-row h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.06s ease, opacity 0.2s ease;
+    }
+
+    .btn:hover {
+      opacity: 0.96;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #e8eefc; color: #153e90; }
+    .btn-light { background: #f3f4f6; color: #374151; }
+    .btn-success { background: #d1fae5; color: #065f46; }
+    .btn-danger { background: #fee2e2; color: #991b1b; }
+    .btn-warning { background: #fef3c7; color: #92400e; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    @media (max-width: 1050px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .card h2, .card h3 {
+      margin-top: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .col-12 { grid-column: span 12; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-3 { grid-column: span 3; }
+
+    @media (max-width: 800px) {
+      .col-6, .col-4, .col-3 {
+        grid-column: span 12;
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .status-pill-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .status-pill-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .status-pill {
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .status-pill .label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .status-pill .value {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .game-stage {
+      position: relative;
+      min-height: 620px;
+      background: linear-gradient(180deg, #fcfdff 0%, #eef5ff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .prompt-bar {
+      padding: 18px 18px 8px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(4px);
+      position: relative;
+      z-index: 2;
+    }
+
+    .prompt-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .prompt-main {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .prompt-title {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .prompt-text {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .prompt-meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .answer-area-wrap {
+      padding: 14px 18px 12px;
+      position: relative;
+      z-index: 2;
+      background: rgba(255,255,255,0.62);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .answer-area {
+      min-height: 72px;
+      border: 2px dashed #9bb7f0;
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255,255,255,0.85);
+    }
+
+    .answer-placeholder {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .tile-layer {
+      position: absolute;
+      inset: 170px 0 0 0;
+      overflow: hidden;
+    }
+
+    .tile {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: var(--tile);
+      border: 1px solid #bfd1f3;
+      color: #16325c;
+      box-shadow: 0 10px 20px rgba(37,99,235,0.10);
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease, background 0.2s ease;
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(37,99,235,0.16);
+    }
+
+    .tile.used {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .tile.correct-flash {
+      background: var(--tile-good);
+    }
+
+    .tile.wrong-flash {
+      background: var(--tile-bad);
+    }
+
+    .answer-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      font-weight: 700;
+      color: #1e3a8a;
+      cursor: pointer;
+    }
+
+    .floating-note {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      max-width: 320px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 12px;
+      font-size: 14px;
+      z-index: 4;
+    }
+
+    .focus-mode .sidebar {
+      display: none;
+    }
+
+    .focus-mode .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    .report-table th,
+    .report-table td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      font-size: 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .report-table th {
+      background: #f8fbff;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      background: #fbfdff;
+    }
+
+    .mini {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .instruction {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .good {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .bad {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .warn {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    @media print {
+      .top-panel, .toolbar, .game-stage, .sidebar, .hide-on-print {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="topPanel" class="top-panel">
+      <div class="title-row">
+        <h1 id="gameTitle">Gra tłumaczeniowa</h1>
+        <div class="toolbar hide-on-print">
+          <button class="btn btn-light" id="togglePanelsBtn">Pokaż górne panele</button>
+          <button class="btn btn-secondary" id="nextSentenceBtn">Następne zdanie</button>
+          <button class="btn btn-warning" id="pauseBtn">Pauza</button>
+          <button class="btn btn-light" id="hintBtn">Podpowiedź</button>
+          <button class="btn btn-primary" id="startGameTopBtn">Start gry</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="col-4">
+          <label for="studentNameInput">Imię ucznia</label>
+          <input type="text" id="studentNameInput" placeholder="Wpisz imię ucznia" />
+        </div>
+
+        <div class="col-4">
+          <label for="classGroupSelect">Klasa / grupa</label>
+          <select id="classGroupSelect"></select>
+        </div>
+
+        <div class="col-4">
+          <label for="setSelect">Zestaw zdań</label>
+          <select id="setSelect"></select>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top:12px;">
+        <button class="btn btn-primary" id="startGameBtn">Start</button>
+        <button class="btn btn-light" id="backToPickerBtn">Powrót do wyboru zestawu</button>
+        <button class="btn btn-light" id="focusModeBtn">Tryb focus</button>
+        <button class="btn btn-light" id="hideTopPanelsBtn">Ukryj górne panele</button>
+      </div>
+
+      <div class="instruction">
+        Instrukcja: klikaj poprawne kafelki we właściwej kolejności, aby zbudować tłumaczenie.
+      </div>
+    </div>
+
+    <div class="layout" id="mainLayout">
+      <div class="sidebar">
+        <div class="card">
+          <h2>Status</h2>
+
+          <div class="status-box">
+            <div class="status-pill-row">
+              <div class="status-pill">
+                <span class="label">Timer</span>
+                <span class="value" id="timerValue">--</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Błędy</span>
+                <span class="value" id="mistakesValue">0</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Zdanie</span>
+                <span class="value" id="sentenceProgressValue">0/0</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Tempo</span>
+                <span class="value" id="tileRateValue">--</span>
+              </div>
+            </div>
+
+            <div class="status-pill-row">
+              <div class="status-pill">
+                <span class="label">Poprawne</span>
+                <span class="value" id="correctValue">0</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Błędy</span>
+                <span class="value" id="errorsValue">0</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Ukończone</span>
+                <span class="value" id="completedValue">0</span>
+              </div>
+              <div class="status-pill">
+                <span class="label">Razem</span>
+                <span class="value" id="totalScoreValue">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Raport końcowy</h2>
+          <div class="status-pill-row">
+            <div class="status-pill">
+              <span class="label">Poprawne</span>
+              <span class="value" id="reportCorrectValue">0</span>
+            </div>
+            <div class="status-pill">
+              <span class="label">Błędy</span>
+              <span class="value" id="reportErrorsValue">0</span>
+            </div>
+            <div class="status-pill">
+              <span class="label">Ukończone</span>
+              <span class="value" id="reportCompletedValue">0</span>
+            </div>
+            <div class="status-pill">
+              <span class="label">Skuteczność</span>
+              <span class="value" id="reportAccuracyValue">0%</span>
+            </div>
+          </div>
+
+          <p class="muted" style="margin-top:12px;">
+            Raport pokazuje tylko realne wyniki zdań i pełną historię zapisanych raportów.
+          </p>
+
+          <h3>Wyniki zdań</h3>
+          <div id="sentenceResultsWrap" class="mini">Brak wyników.</div>
+
+          <h3>Historia ostatnich raportów</h3>
+          <div id="reportHistoryWrap" class="mini">Brak historii.</div>
+
+          <div class="toolbar hide-on-print" style="margin-top:12px;">
+            <button class="btn btn-light" id="exportPdfBtn">Eksport PDF</button>
+            <button class="btn btn-light" id="exportCsvBtn">Eksport CSV</button>
+            <button class="btn btn-danger" id="clearHistoryBtn">Wyczyść historię</button>
+          </div>
+
+          <div class="toolbar hide-on-print" style="margin-top:12px;">
+            <button class="btn btn-light" id="closeReportBtn">Zamknij raport</button>
+            <button class="btn btn-success" id="playAgainBtn">Zagraj od nowa</button>
+            <button class="btn btn-light" id="reportBackBtn">Powrót do wyboru zestawu</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="game-stage card" id="gameStage">
+          <div class="prompt-bar">
+            <div class="prompt-top">
+              <div class="prompt-main">
+                <div class="prompt-title" id="promptTitle">Start</div>
+                <div class="prompt-text" id="promptText">Kliknij Start, aby rozpocząć cały zestaw.</div>
+                <div class="prompt-meta" id="promptMeta"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="answer-area-wrap">
+            <div class="answer-area" id="answerArea">
+              <div class="answer-placeholder">Tutaj pojawi się budowane tłumaczenie.</div>
+            </div>
+          </div>
+
+          <div class="tile-layer" id="tileLayer"></div>
+
+          <div class="floating-note" id="floatingNote">
+            <strong>Sterowanie</strong><br />
+            Start - rozpocznij zestaw<br />
+            Następne zdanie - przejście dalej<br />
+            Pauza - zatrzymanie gry<br />
+            Podpowiedź - pokaż pierwszy brakujący element
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      teacherData: 'new_quiz_teacher_data',
+      reportHistory: 'new_quiz_report_history'
+    };
+
+    const DEFAULT_DATA = {
+      globalSettings: {
+        gameTitle: 'Gra tłumaczeniowa',
+        difficulty: 'easy',
+        defaultClassGroup: '',
+        sourceLanguage: 'Polish',
+        targetLanguage: 'English',
+        swapLanguages: false,
+        timerMode: 0,
+        maxMistakes: 0,
+        sentenceOrder: 'in-order',
+        autoNext: 0,
+        defaultDistractorCount: 4,
+        defaultDistractorType: 'automatic',
+        punctuationMode: 'automatic',
+        studentNameRequired: true,
+        showSetPickerAtStart: true,
+        hintEnabled: true,
+        showSolution: true,
+        translationInstruction: true,
+        soundEnabled: true,
+        pointsForCompletion: 10,
+        bonusNoMistakes: 20,
+        penaltyWrongClick: -1,
+        bonusFastCompletion: 1,
+        fastCompletionSeconds: 10,
+        tilesPerMinute: 35
+      },
+      sets: []
+    };
+
+    const topPanel = document.getElementById('topPanel');
+    const gameTitle = document.getElementById('gameTitle');
+    const studentNameInput = document.getElementById('studentNameInput');
+    const classGroupSelect = document.getElementById('classGroupSelect');
+    const setSelect = document.getElementById('setSelect');
+
+    const startGameBtn = document.getElementById('startGameBtn');
+    const startGameTopBtn = document.getElementById('startGameTopBtn');
+    const nextSentenceBtn = document.getElementById('nextSentenceBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const backToPickerBtn = document.getElementById('backToPickerBtn');
+    const focusModeBtn = document.getElementById('focusModeBtn');
+    const hideTopPanelsBtn = document.getElementById('hideTopPanelsBtn');
+    const togglePanelsBtn = document.getElementById('togglePanelsBtn');
+
+    const timerValue = document.getElementById('timerValue');
+    const mistakesValue = document.getElementById('mistakesValue');
+    const sentenceProgressValue = document.getElementById('sentenceProgressValue');
+    const tileRateValue = document.getElementById('tileRateValue');
+    const correctValue = document.getElementById('correctValue');
+    const errorsValue = document.getElementById('errorsValue');
+    const completedValue = document.getElementById('completedValue');
+    const totalScoreValue = document.getElementById('totalScoreValue');
+
+    const reportCorrectValue = document.getElementById('reportCorrectValue');
+    const reportErrorsValue = document.getElementById('reportErrorsValue');
+    const reportCompletedValue = document.getElementById('reportCompletedValue');
+    const reportAccuracyValue = document.getElementById('reportAccuracyValue');
+    const sentenceResultsWrap = document.getElementById('sentenceResultsWrap');
+    const reportHistoryWrap = document.getElementById('reportHistoryWrap');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const closeReportBtn = document.getElementById('closeReportBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const reportBackBtn = document.getElementById('reportBackBtn');
+
+    const promptTitle = document.getElementById('promptTitle');
+    const promptText = document.getElementById('promptText');
+    const promptMeta = document.getElementById('promptMeta');
+    const answerArea = document.getElementById('answerArea');
+    const tileLayer = document.getElementById('tileLayer');
+    const gameStage = document.getElementById('gameStage');
+    const floatingNote = document.getElementById('floatingNote');
+    const mainLayout = document.getElementById('mainLayout');
+
+    let teacherData = loadTeacherData();
+    let globalSettings = teacherData.globalSettings;
+    let allSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
+    let visibleSets = [];
+
+    let gameState = {
+      started: false,
+      paused: false,
+      finished: false,
+      selectedSetId: '',
+      selectedClassGroup: '',
+      studentName: '',
+      sentences: [],
+      currentSentenceIndex: -1,
+      currentSentenceStartTime: 0,
+      currentSentenceMistakes: 0,
+      currentAnswer: [],
+      currentTiles: [],
+      tileQueue: [],
+      nextSpawnIndex: 0,
+      spawnTimerId: null,
+      sentenceTimerId: null,
+      sentenceSecondsLeft: 0,
+      overallCorrectClicks: 0,
+      overallWrongClicks: 0,
+      completedSentences: 0,
+      totalScore: 0,
+      sentenceResults: []
+    };
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadTeacherData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.teacherData);
+        if (!raw) return deepClone(DEFAULT_DATA);
+        const parsed = JSON.parse(raw);
+        return {
+          globalSettings: {
+            ...deepClone(DEFAULT_DATA).globalSettings,
+            ...(parsed.globalSettings || {})
+          },
+          sets: Array.isArray(parsed.sets) ? parsed.sets : []
+        };
+      } catch (e) {
+        return deepClone(DEFAULT_DATA);
+      }
+    }
+
+    function loadReportHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.reportHistory);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveReportHistory(history) {
+      localStorage.setItem(STORAGE_KEYS.reportHistory, JSON.stringify(history));
+    }
+
+    function refreshData() {
+      teacherData = loadTeacherData();
+      globalSettings = teacherData.globalSettings;
+      allSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
+    }
+
+    function updateTitle() {
+      gameTitle.textContent = globalSettings.gameTitle || 'Gra tłumaczeniowa';
+    }
+
+    function uniqueClassGroups() {
+      const set = new Set();
+      if (globalSettings.defaultClassGroup) set.add(globalSettings.defaultClassGroup);
+      allSets.forEach(s => {
+        if (s.classGroup) set.add(s.classGroup);
+      });
+      return [''].concat([...set].sort((a, b) => a.localeCompare(b, 'pl')));
+    }
+
+    function renderClassGroups() {
+      const groups = uniqueClassGroups();
+      classGroupSelect.innerHTML = groups.map(group => {
+        const label = group || 'Wszystkie';
+        return `<option value="${escapeHtmlAttr(group)}">${escapeHtml(label)}</option>`;
+      }).join('');
+      if (globalSettings.defaultClassGroup) {
+        classGroupSelect.value = globalSettings.defaultClassGroup;
+      }
+    }
+
+    function filterSetsByClassGroup(group) {
+      if (!group) return [...allSets];
+      return allSets.filter(s => (s.classGroup || '') === group);
+    }
+
+    function renderSets() {
+      const group = classGroupSelect.value || '';
+      visibleSets = filterSetsByClassGroup(group);
+
+      if (!visibleSets.length) {
+        setSelect.innerHTML = '<option value="">Brak zestawów</option>';
+        return;
+      }
+
+      setSelect.innerHTML = visibleSets.map(s => {
+        const label = s.classGroup ? `${s.name} (${s.classGroup})` : s.name;
+        return `<option value="${escapeHtmlAttr(s.id)}">${escapeHtml(label)}</option>`;
+      }).join('');
+
+      if (!setSelect.value && visibleSets[0]) {
+        setSelect.value = visibleSets[0].id;
+      }
+    }
+
+    function getSelectedSet() {
+      const id = setSelect.value;
+      return allSets.find(s => s.id === id) || null;
+    }
+
+    function normalizeText(text) {
+      const original = String(text || '').trim();
+      if (!original) return '';
+
+      if (globalSettings.punctuationMode === 'remove') {
+        return original.replace(/[.,!?;:()[\]{}"“”'`…\-]/g, '').replace(/\s+/g, ' ').trim();
+      }
+
+      return original.replace(/\s+/g, ' ').trim();
+    }
+
+    function tokenizeByMode(text, mode) {
+      const normalized = normalizeText(text);
+
+      if (!normalized) return [];
+
+      if (mode === 'letters') {
+        return normalized.split('').filter(ch => ch !== ' ');
+      }
+
+      return normalized.split(' ').filter(Boolean);
+    }
+
+    function buildSentenceObjects(setObj) {
+      if (!setObj || !Array.isArray(setObj.items)) return [];
+
+      let items = setObj.items.map((item, index) => {
+        const source = String(item.source || '').trim();
+        const target = String(item.target || '').trim();
+
+        return {
+          id: `${setObj.id}_${index}`,
+          source,
+          target,
+          buildMode: setObj.buildMode || 'words',
+          distractorSettings: setObj.distractorSettings || {
+            mode: 'inherit',
+            count: globalSettings.defaultDistractorCount,
+            type: globalSettings.defaultDistractorType
+          }
+        };
+      });
+
+      if (globalSettings.swapLanguages) {
+        items = items.map(item => ({
+          ...item,
+          source: item.target,
+          target: item.source
+        }));
+      }
+
+      if (globalSettings.sentenceOrder === 'random') {
+        items = shuffleArray(items);
+      }
+
+      return items;
+    }
+
+    function shuffleArray(arr) {
+      const clone = [...arr];
+      for (let i = clone.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clone[i], clone[j]] = [clone[j], clone[i]];
+      }
+      return clone;
+    }
+
+    function getDistractorConfig(sentence) {
+      const mode = sentence.distractorSettings?.mode || 'inherit';
+
+      if (mode === 'own') {
+        return {
+          count: Number(sentence.distractorSettings?.count || 0),
+          type: sentence.distractorSettings?.type || 'automatic'
+        };
+      }
+
+      return {
+        count: Number(globalSettings.defaultDistractorCount || 0),
+        type: globalSettings.defaultDistractorType || 'automatic'
+      };
+    }
+
+    function collectMaterialPool(buildMode, sentenceId) {
+      const pool = [];
+
+      allSets.forEach(setObj => {
+        (setObj.items || []).forEach((item, index) => {
+          const actualTarget = globalSettings.swapLanguages
+            ? String(item.source || '')
+            : String(item.target || '');
+
+          const currentId = `${setObj.id}_${index}`;
+          if (currentId === sentenceId) return;
+
+          const parts = tokenizeByMode(actualTarget, buildMode);
+          pool.push(...parts);
+        });
+      });
+
+      return pool;
+    }
+
+    function generateLetterDistractors(answerTokens, count) {
+      const letters = 'abcdefghijklmnopqrstuvwxyz';
+      const result = [];
+      while (result.length < count) {
+        const char = letters[Math.floor(Math.random() * letters.length)];
+        if (!answerTokens.includes(char) || Math.random() > 0.6) {
+          result.push(char);
+        }
+      }
+      return result;
+    }
+
+    function generateWordDistractors(answerTokens, count, type, sentenceId, buildMode) {
+      if (count <= 0) return [];
+
+      let pool = [];
+
+      if (type === 'material') {
+        pool = collectMaterialPool(buildMode, sentenceId);
+      } else if (type === 'letters') {
+        return generateLetterDistractors(answerTokens, count);
+      } else {
+        pool = collectMaterialPool(buildMode, sentenceId);
+      }
+
+      const uniquePool = shuffleArray([...new Set(pool.filter(Boolean))])
+        .filter(token => !answerTokens.includes(token));
+
+      const picked = uniquePool.slice(0, count);
+
+      if (picked.length < count) {
+        const fallbackWords = ['the', 'and', 'is', 'to', 'in', 'on', 'at', 'with', 'for', 'from', 'this', 'that'];
+        while (picked.length < count) {
+          const choice = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
+          picked.push(choice);
+        }
+      }
+
+      return picked.slice(0, count);
+    }
+
+    function generateTilesForSentence(sentence) {
+      const buildMode = sentence.buildMode || 'words';
+      const answerTokens = tokenizeByMode(sentence.target, buildMode);
+      const distractorConfig = getDistractorConfig(sentence);
+
+      let distractors = [];
+
+      if (buildMode === 'letters') {
+        if (distractorConfig.type === 'material') {
+          const materialPool = collectMaterialPool(buildMode, sentence.id)
+            .filter(ch => !answerTokens.includes(ch) || Math.random() > 0.6);
+          distractors = shuffleArray(materialPool).slice(0, distractorConfig.count);
+          while (distractors.length < distractorConfig.count) {
+            distractors.push(...generateLetterDistractors(answerTokens, distractorConfig.count - distractors.length));
+          }
+        } else {
+          distractors = generateLetterDistractors(answerTokens, distractorConfig.count);
+        }
+      } else {
+        distractors = generateWordDistractors(
+          answerTokens,
+          distractorConfig.count,
+          distractorConfig.type,
+          sentence.id,
+          buildMode
+        );
+      }
+
+      const answerTiles = answerTokens.map((text, index) => ({
+        id: `a_${sentence.id}_${index}_${Math.random().toString(36).slice(2,7)}`,
+        text,
+        kind: 'answer',
+        answerIndex: index
+      }));
+
+      const distractorTiles = distractors.map((text, index) => ({
+        id: `d_${sentence.id}_${index}_${Math.random().toString(36).slice(2,7)}`,
+        text,
+        kind: 'distractor',
+        answerIndex: -1
+      }));
+
+      return shuffleArray([...answerTiles, ...distractorTiles]);
+    }
+
+    function resetCurrentSentenceUi() {
+      answerArea.innerHTML = '<div class="answer-placeholder">Tutaj pojawi się budowane tłumaczenie.</div>';
+      tileLayer.innerHTML = '';
+      gameState.currentAnswer = [];
+      gameState.currentTiles = [];
+      gameState.tileQueue = [];
+      gameState.nextSpawnIndex = 0;
+      clearSpawnTimer();
+      clearSentenceTimer();
+    }
+
+    function clearSpawnTimer() {
+      if (gameState.spawnTimerId) {
+        clearInterval(gameState.spawnTimerId);
+        gameState.spawnTimerId = null;
+      }
+    }
+
+    function clearSentenceTimer() {
+      if (gameState.sentenceTimerId) {
+        clearInterval(gameState.sentenceTimerId);
+        gameState.sentenceTimerId = null;
+      }
+    }
+
+    function setPromptForIdle() {
+      promptTitle.textContent = 'Start';
+      promptText.textContent = 'Kliknij Start, aby rozpocząć cały zestaw.';
+      promptMeta.textContent = '';
+    }
+
+    function setPromptForSentence(sentence) {
+      promptTitle.textContent = globalSettings.translationInstruction
+        ? `Przetłumacz`
+        : `Zbuduj zdanie`;
+
+      promptText.textContent = sentence.source;
+
+      const buildModeLabel = sentence.buildMode === 'letters' ? 'litery' : 'wyrazy';
+      promptMeta.textContent = `Tryb: ${buildModeLabel} | Język źródłowy: ${globalSettings.sourceLanguage} | Docelowy: ${globalSettings.targetLanguage}`;
+    }
+
+    function startGame() {
+      refreshData();
+      updateTitle();
+
+      const selectedSet = getSelectedSet();
+      if (!selectedSet) {
+        alert('Brak wybranego zestawu.');
+        return;
+      }
+
+      const studentName = studentNameInput.value.trim();
+      if (globalSettings.studentNameRequired && !studentName) {
+        alert('Wpisz imię ucznia.');
+        return;
+      }
+
+      const sentences = buildSentenceObjects(selectedSet);
+      if (!sentences.length) {
+        alert('Wybrany zestaw nie zawiera zdań.');
+        return;
+      }
+
+      gameState.started = true;
+      gameState.paused = false;
+      gameState.finished = false;
+      gameState.selectedSetId = selectedSet.id;
+      gameState.selectedClassGroup = classGroupSelect.value || '';
+      gameState.studentName = studentName;
+      gameState.sentences = sentences;
+      gameState.currentSentenceIndex = -1;
+      gameState.currentSentenceStartTime = 0;
+      gameState.currentSentenceMistakes = 0;
+      gameState.currentAnswer = [];
+      gameState.currentTiles = [];
+      gameState.tileQueue = [];
+      gameState.nextSpawnIndex = 0;
+      gameState.overallCorrectClicks = 0;
+      gameState.overallWrongClicks = 0;
+      gameState.completedSentences = 0;
+      gameState.totalScore = 0;
+      gameState.sentenceResults = [];
+
+      nextSentence(true);
+      updateHud();
+    }
+
+    function nextSentence(isFromStart = false) {
+      if (!gameState.started || gameState.finished) return;
+
+      if (!isFromStart && !gameState.paused && gameState.currentSentenceIndex >= 0) {
+        finalizeSentenceAsSkippedIfNeeded();
+      }
+
+      gameState.currentSentenceIndex += 1;
+
+      if (gameState.currentSentenceIndex >= gameState.sentences.length) {
+        finishGame();
+        return;
+      }
+
+      gameState.paused = false;
+      pauseBtn.textContent = 'Pauza';
+      resetCurrentSentenceUi();
+
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      setPromptForSentence(sentence);
+
+      gameState.currentSentenceMistakes = 0;
+      gameState.currentSentenceStartTime = Date.now();
+      gameState.tileQueue = generateTilesForSentence(sentence);
+
+      startSentenceTimer();
+      startSpawnLoop();
+      updateHud();
+    }
+
+    function finalizeSentenceAsSkippedIfNeeded() {
+      if (!gameState.started || gameState.finished) return;
+      if (!gameState.sentences[gameState.currentSentenceIndex]) return;
+      if (gameState.currentAnswer.length === 0 && gameState.currentTiles.length === 0) return;
+    }
+
+    function startSentenceTimer() {
+      clearSentenceTimer();
+
+      const seconds = Number(globalSettings.timerMode || 0);
+      if (!seconds) {
+        timerValue.textContent = '--';
+        return;
+      }
+
+      gameState.sentenceSecondsLeft = seconds;
+      timerValue.textContent = String(gameState.sentenceSecondsLeft);
+
+      gameState.sentenceTimerId = setInterval(() => {
+        if (gameState.paused || gameState.finished) return;
+
+        gameState.sentenceSecondsLeft -= 1;
+        timerValue.textContent = String(gameState.sentenceSecondsLeft);
+
+        if (gameState.sentenceSecondsLeft <= 0) {
+          clearSentenceTimer();
+          handleSentenceTimeout();
+        }
+      }, 1000);
+    }
+
+    function handleSentenceTimeout() {
+      registerSentenceResult({
+        completed: false,
+        timedOut: true,
+        answerText: gameState.currentAnswer.join(gameState.sentences[gameState.currentSentenceIndex].buildMode === 'letters' ? '' : ' '),
+        expectedText: normalizeText(gameState.sentences[gameState.currentSentenceIndex].target),
+        mistakes: gameState.currentSentenceMistakes,
+        scoreDelta: 0,
+        durationSeconds: elapsedSecondsForCurrentSentence()
+      });
+
+      nextSentence();
+    }
+
+    function elapsedSecondsForCurrentSentence() {
+      if (!gameState.currentSentenceStartTime) return 0;
+      return Math.max(1, Math.round((Date.now() - gameState.currentSentenceStartTime) / 1000));
+    }
+
+    function startSpawnLoop() {
+      clearSpawnTimer();
+
+      const tpm = Math.max(5, Number(globalSettings.tilesPerMinute || 35));
+      tileRateValue.textContent = `${tpm}/m`;
+      const intervalMs = Math.max(150, Math.round(60000 / tpm));
+
+      gameState.spawnTimerId = setInterval(() => {
+        if (gameState.paused || gameState.finished) return;
+
+        if (gameState.nextSpawnIndex >= gameState.tileQueue.length) {
+          clearSpawnTimer();
+          return;
+        }
+
+        const tile = gameState.tileQueue[gameState.nextSpawnIndex];
+        spawnTile(tile);
+        gameState.currentTiles.push(tile);
+        gameState.nextSpawnIndex += 1;
+      }, intervalMs);
+    }
+
+    function measureTileSize(text) {
+      const probe = document.createElement('div');
+      probe.className = 'tile';
+      probe.style.visibility = 'hidden';
+      probe.style.left = '-9999px';
+      probe.style.top = '-9999px';
+      probe.textContent = text;
+      tileLayer.appendChild(probe);
+      const rect = probe.getBoundingClientRect();
+      probe.remove();
+      return {
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height)
+      };
+    }
+
+    function findSpawnPosition(width, height) {
+      const stageRect = tileLayer.getBoundingClientRect();
+      const maxX = Math.max(10, stageRect.width - width - 12);
+      const maxY = Math.max(10, stageRect.height - height - 12);
+
+      const existing = [...tileLayer.querySelectorAll('.tile:not(.used)')].map(node => ({
+        left: parseFloat(node.style.left || '0'),
+        top: parseFloat(node.style.top || '0'),
+        width: node.offsetWidth,
+        height: node.offsetHeight
+      }));
+
+      const maxAttempts = 40;
+      const minGapX = 12;
+      const minGapY = 10;
+
+      let bestCandidate = { left: 12, top: 12, score: -Infinity };
+
+      for (let i = 0; i < maxAttempts; i++) {
+        const left = Math.random() * maxX;
+        const top = Math.random() * maxY;
+
+        let overlaps = false;
+        let nearestDistanceScore = 999999;
+
+        for (const item of existing) {
+          const dx = Math.max(
+            0,
+            Math.max(item.left - (left + width), left - (item.left + item.width))
+          );
+
+          const dy = Math.max(
+            0,
+            Math.max(item.top - (top + height), top - (item.top + item.height))
+          );
+
+          const overlapX = left < item.left + item.width + minGapX && left + width + minGapX > item.left;
+          const overlapY = top < item.top + item.height + minGapY && top + height + minGapY > item.top;
+
+          if (overlapX && overlapY) {
+            overlaps = true;
+          }
+
+          const distScore = dx + dy;
+          if (distScore < nearestDistanceScore) nearestDistanceScore = distScore;
+        }
+
+        if (!existing.length) {
+          return { left, top };
+        }
+
+        if (!overlaps) {
+          return { left, top };
+        }
+
+        if (nearestDistanceScore > bestCandidate.score) {
+          bestCandidate = { left, top, score: nearestDistanceScore };
+        }
+      }
+
+      return { left: bestCandidate.left, top: bestCandidate.top };
+    }
+
+    function spawnTile(tileObj) {
+      const node = document.createElement('button');
+      node.className = 'tile';
+      node.type = 'button';
+      node.textContent = tileObj.text;
+      node.dataset.id = tileObj.id;
+      node.dataset.kind = tileObj.kind;
+      node.dataset.answerIndex = String(tileObj.answerIndex);
+
+      const size = measureTileSize(tileObj.text);
+      const pos = findSpawnPosition(size.width, size.height);
+
+      node.style.left = `${pos.left}px`;
+      node.style.top = `${pos.top}px`;
+
+      node.addEventListener('click', () => handleTileClick(tileObj, node));
+
+      tileLayer.appendChild(node);
+    }
+
+    function handleTileClick(tileObj, node) {
+      if (gameState.paused || gameState.finished) return;
+      if (node.classList.contains('used')) return;
+
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      const answerTokens = tokenizeByMode(sentence.target, sentence.buildMode);
+      const expectedNextIndex = gameState.currentAnswer.length;
+      const expectedToken = answerTokens[expectedNextIndex];
+
+      if (tileObj.kind === 'answer' && tileObj.text === expectedToken) {
+        node.classList.add('used', 'correct-flash');
+        setTimeout(() => node.classList.remove('correct-flash'), 250);
+
+        gameState.currentAnswer.push(tileObj.text);
+        gameState.overallCorrectClicks += 1;
+        renderAnswerArea();
+
+        if (gameState.currentAnswer.length === answerTokens.length) {
+          completeSentenceSuccessfully();
+        }
+      } else {
+        node.classList.add('wrong-flash');
+        setTimeout(() => node.classList.remove('wrong-flash'), 300);
+
+        gameState.currentSentenceMistakes += 1;
+        gameState.overallWrongClicks += 1;
+        gameState.totalScore += Number(globalSettings.penaltyWrongClick || 0);
+
+        if (globalSettings.maxMistakes > 0 && gameState.currentSentenceMistakes >= globalSettings.maxMistakes) {
+          registerSentenceResult({
+            completed: false,
+            timedOut: false,
+            answerText: gameState.currentAnswer.join(sentence.buildMode === 'letters' ? '' : ' '),
+            expectedText: normalizeText(sentence.target),
+            mistakes: gameState.currentSentenceMistakes,
+            scoreDelta: Number(globalSettings.penaltyWrongClick || 0),
+            durationSeconds: elapsedSecondsForCurrentSentence(),
+            mistakeLimitReached: true
+          });
+          nextSentence();
+          updateHud();
+          return;
+        }
+      }
+
+      updateHud();
+    }
+
+    function renderAnswerArea() {
+      answerArea.innerHTML = '';
+
+      if (!gameState.currentAnswer.length) {
+        answerArea.innerHTML = '<div class="answer-placeholder">Tutaj pojawi się budowane tłumaczenie.</div>';
+        return;
+      }
+
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      gameState.currentAnswer.forEach((token, index) => {
+        const chip = document.createElement('button');
+        chip.className = 'answer-chip';
+        chip.type = 'button';
+        chip.textContent = token;
+        chip.title = 'Kliknij, aby cofnąć ostatni element';
+        chip.addEventListener('click', () => {
+          if (index !== gameState.currentAnswer.length - 1) return;
+          undoLastAnswer();
+        });
+        answerArea.appendChild(chip);
+      });
+    }
+
+    function undoLastAnswer() {
+      if (!gameState.currentAnswer.length) return;
+
+      gameState.currentAnswer.pop();
+      const usedNodes = [...tileLayer.querySelectorAll('.tile.used')];
+      const lastUsed = usedNodes[usedNodes.length - 1];
+      if (lastUsed) {
+        lastUsed.classList.remove('used');
+      }
+
+      renderAnswerArea();
+      updateHud();
+    }
+
+    function completeSentenceSuccessfully() {
+      clearSpawnTimer();
+      clearSentenceTimer();
+
+      const durationSeconds = elapsedSecondsForCurrentSentence();
+      let scoreDelta = Number(globalSettings.pointsForCompletion || 0);
+
+      if (gameState.currentSentenceMistakes === 0) {
+        scoreDelta += Number(globalSettings.bonusNoMistakes || 0);
+      }
+
+      if (durationSeconds <= Number(globalSettings.fastCompletionSeconds || 10)) {
+        scoreDelta += Number(globalSettings.bonusFastCompletion || 0);
+      }
+
+      gameState.totalScore += scoreDelta;
+      gameState.completedSentences += 1;
+
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      registerSentenceResult({
+        completed: true,
+        timedOut: false,
+        answerText: gameState.currentAnswer.join(sentence.buildMode === 'letters' ? '' : ' '),
+        expectedText: normalizeText(sentence.target),
+        mistakes: gameState.currentSentenceMistakes,
+        scoreDelta,
+        durationSeconds
+      });
+
+      updateHud();
+
+      const autoNextSeconds = Number(globalSettings.autoNext || 0);
+      if (autoNextSeconds > 0) {
+        setTimeout(() => {
+          if (!gameState.finished) nextSentence();
+        }, autoNextSeconds * 1000);
+      }
+    }
+
+    function registerSentenceResult(result) {
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      if (!sentence) return;
+
+      gameState.sentenceResults.push({
+        index: gameState.currentSentenceIndex + 1,
+        source: sentence.source,
+        target: sentence.target,
+        completed: !!result.completed,
+        timedOut: !!result.timedOut,
+        mistakeLimitReached: !!result.mistakeLimitReached,
+        answerText: result.answerText || '',
+        expectedText: result.expectedText || '',
+        mistakes: Number(result.mistakes || 0),
+        scoreDelta: Number(result.scoreDelta || 0),
+        durationSeconds: Number(result.durationSeconds || 0)
+      });
+
+      renderSentenceResults();
+    }
+
+    function renderSentenceResults() {
+      if (!gameState.sentenceResults.length) {
+        sentenceResultsWrap.innerHTML = 'Brak wyników.';
+        return;
+      }
+
+      const rows = gameState.sentenceResults.map(item => {
+        const status = item.completed
+          ? '<span class="good">Ukończone</span>'
+          : item.timedOut
+            ? '<span class="warn">Czas minął</span>'
+            : item.mistakeLimitReached
+              ? '<span class="bad">Limit błędów</span>'
+              : '<span class="bad">Nieukończone</span>';
+
+        return `
+          <tr>
+            <td>${item.index}</td>
+            <td>${escapeHtml(item.source)}</td>
+            <td>${escapeHtml(item.target)}</td>
+            <td>${status}</td>
+            <td>${escapeHtml(item.answerText || '-')}</td>
+            <td>${item.mistakes}</td>
+            <td>${item.durationSeconds}s</td>
+            <td>${item.scoreDelta}</td>
+          </tr>
+        `;
+      }).join('');
+
+      sentenceResultsWrap.innerHTML = `
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Zdanie</th>
+              <th>Tłumaczenie</th>
+              <th>Status</th>
+              <th>Odpowiedź</th>
+              <th>Błędy</th>
+              <th>Czas</th>
+              <th>Punkty</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function updateHud() {
+      mistakesValue.textContent = String(gameState.currentSentenceMistakes);
+      sentenceProgressValue.textContent = `${Math.max(0, gameState.currentSentenceIndex + 1)}/${gameState.sentences.length || 0}`;
+      correctValue.textContent = String(gameState.overallCorrectClicks);
+      errorsValue.textContent = String(gameState.overallWrongClicks);
+      completedValue.textContent = String(gameState.completedSentences);
+      totalScoreValue.textContent = String(gameState.totalScore);
+
+      reportCorrectValue.textContent = String(gameState.overallCorrectClicks);
+      reportErrorsValue.textContent = String(gameState.overallWrongClicks);
+      reportCompletedValue.textContent = String(gameState.completedSentences);
+
+      const totalAttempts = gameState.overallCorrectClicks + gameState.overallWrongClicks;
+      const accuracy = totalAttempts ? Math.round((gameState.overallCorrectClicks / totalAttempts) * 100) : 0;
+      reportAccuracyValue.textContent = `${accuracy}%`;
+
+      const tpm = Math.max(5, Number(globalSettings.tilesPerMinute || 35));
+      tileRateValue.textContent = `${tpm}/m`;
+
+      if (!Number(globalSettings.timerMode || 0) && !gameState.finished) {
+        timerValue.textContent = '--';
+      }
+    }
+
+    function finishGame() {
+      clearSpawnTimer();
+      clearSentenceTimer();
+
+      gameState.finished = true;
+      gameState.started = false;
+      gameState.paused = false;
+
+      promptTitle.textContent = 'Koniec zestawu';
+      promptText.textContent = 'Zestaw został ukończony.';
+      promptMeta.textContent = `Wynik końcowy: ${gameState.totalScore}`;
+
+      saveCurrentReportToHistory();
+      renderHistory();
+      updateHud();
+    }
+
+    function saveCurrentReportToHistory() {
+      const history = loadReportHistory();
+
+      const report = {
+        createdAt: new Date().toISOString(),
+        studentName: gameState.studentName || '',
+        setId: gameState.selectedSetId || '',
+        classGroup: gameState.selectedClassGroup || '',
+        totalScore: gameState.totalScore,
+        correctClicks: gameState.overallCorrectClicks,
+        wrongClicks: gameState.overallWrongClicks,
+        completedSentences: gameState.completedSentences,
+        sentenceCount: gameState.sentences.length,
+        settingsSnapshot: {
+          pointsForCompletion: globalSettings.pointsForCompletion,
+          bonusNoMistakes: globalSettings.bonusNoMistakes,
+          penaltyWrongClick: globalSettings.penaltyWrongClick,
+          bonusFastCompletion: globalSettings.bonusFastCompletion,
+          fastCompletionSeconds: globalSettings.fastCompletionSeconds,
+          tilesPerMinute: globalSettings.tilesPerMinute
+        }
+      };
+
+      history.unshift(report);
+      saveReportHistory(history.slice(0, 20));
+    }
+
+    function renderHistory() {
+      const history = loadReportHistory();
+
+      if (!history.length) {
+        reportHistoryWrap.innerHTML = 'Brak historii.';
+        return;
+      }
+
+      reportHistoryWrap.innerHTML = history.map(item => {
+        const date = new Date(item.createdAt);
+        const dateText = isNaN(date.getTime()) ? item.createdAt : date.toLocaleString('pl-PL');
+
+        return `
+          <div class="history-item">
+            <div><strong>${escapeHtml(item.studentName || 'Uczeń')}</strong> | ${escapeHtml(item.setId || '-')}</div>
+            <div class="mini">${escapeHtml(dateText)} | Klasa: ${escapeHtml(item.classGroup || '-')}</div>
+            <div class="mini">
+              Punkty: ${item.totalScore},
+              Poprawne: ${item.correctClicks},
+              Błędy: ${item.wrongClicks},
+              Ukończone: ${item.completedSentences}/${item.sentenceCount},
+              Tempo: ${item.settingsSnapshot?.tilesPerMinute ?? '-'} / min
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function togglePause() {
+      if (!gameState.started || gameState.finished) return;
+
+      gameState.paused = !gameState.paused;
+      pauseBtn.textContent = gameState.paused ? 'Wznów' : 'Pauza';
+
+      if (gameState.paused) {
+        floatingNote.innerHTML = '<strong>Pauza</strong><br />Gra została zatrzymana.';
+      } else {
+        floatingNote.innerHTML = '<strong>Sterowanie</strong><br />Start - rozpocznij zestaw<br />Następne zdanie - przejście dalej<br />Pauza - zatrzymanie gry<br />Podpowiedź - pokaż pierwszy brakujący element';
+      }
+    }
+
+    function showHint() {
+      if (!gameState.started || gameState.finished) return;
+      if (!globalSettings.hintEnabled) return;
+
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
+      if (!sentence) return;
+
+      const answerTokens = tokenizeByMode(sentence.target, sentence.buildMode);
+      const missingIndex = gameState.currentAnswer.length;
+      const nextToken = answerTokens[missingIndex];
+
+      if (!nextToken) return;
+
+      floatingNote.innerHTML = `<strong>Podpowiedź</strong><br />Następny element: ${escapeHtml(nextToken)}`;
+    }
+
+    function goBackToPicker() {
+      clearSpawnTimer();
+      clearSentenceTimer();
+
+      gameState.started = false;
+      gameState.paused = false;
+      gameState.finished = false;
+      gameState.currentSentenceIndex = -1;
+      gameState.sentences = [];
+      gameState.currentAnswer = [];
+      gameState.currentTiles = [];
+      gameState.tileQueue = [];
+      gameState.sentenceResults = [];
+      gameState.totalScore = 0;
+      gameState.overallCorrectClicks = 0;
+      gameState.overallWrongClicks = 0;
+      gameState.completedSentences = 0;
+      gameState.currentSentenceMistakes = 0;
+
+      tileLayer.innerHTML = '';
+      answerArea.innerHTML = '<div class="answer-placeholder">Tutaj pojawi się budowane tłumaczenie.</div>';
+      setPromptForIdle();
+      renderSentenceResults();
+      updateHud();
+    }
+
+    function toggleFocusMode() {
+      document.body.classList.toggle('focus-mode');
+      focusModeBtn.textContent = document.body.classList.contains('focus-mode')
+        ? 'Wyłącz focus'
+        : 'Tryb focus';
+    }
+
+    function hideTopPanels() {
+      topPanel.classList.add('hidden-panels');
+      togglePanelsBtn.textContent = 'Pokaż górne panele';
+    }
+
+    function toggleTopPanels() {
+      topPanel.classList.toggle('hidden-panels');
+      togglePanelsBtn.textContent = topPanel.classList.contains('hidden-panels')
+        ? 'Pokaż górne panele'
+        : 'Ukryj górne panele';
+    }
+
+    function exportCsv() {
+      const header = ['nr', 'zdanie', 'tlumaczenie', 'status', 'odpowiedz', 'bledy', 'czas_s', 'punkty'];
+      const rows = gameState.sentenceResults.map(item => [
+        item.index,
+        csvEscape(item.source),
+        csvEscape(item.target),
+        item.completed ? 'ukonczone' : item.timedOut ? 'czas' : item.mistakeLimitReached ? 'limit_bledow' : 'nieukonczone',
+        csvEscape(item.answerText),
+        item.mistakes,
+        item.durationSeconds,
+        item.scoreDelta
+      ]);
+
+      const text = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'raport.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvEscape(value) {
+      const v = String(value ?? '');
+      return `"${v.replaceAll('"', '""')}"`;
+    }
+
+    function exportPdf() {
+      window.print();
+    }
+
+    function clearHistory() {
+      if (!confirm('Wyczyścić historię raportów?')) return;
+      saveReportHistory([]);
+      renderHistory();
+    }
+
+    function closeReport() {
+      sentenceResultsWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeHtmlAttr(value) {
+      return escapeHtml(value);
+    }
+
+    function init() {
+      refreshData();
+      updateTitle();
+      renderClassGroups();
+      renderSets();
+      renderHistory();
+      renderSentenceResults();
+      setPromptForIdle();
+      updateHud();
+
+      if (!globalSettings.showSetPickerAtStart) {
+        topPanel.classList.add('hidden-panels');
+        togglePanelsBtn.textContent = 'Pokaż górne panele';
+      }
+    }
+
+    classGroupSelect.addEventListener('change', () => {
+      renderSets();
+    });
+
+    startGameBtn.addEventListener('click', startGame);
+    startGameTopBtn.addEventListener('click', startGame);
+    nextSentenceBtn.addEventListener('click', () => nextSentence());
+    pauseBtn.addEventListener('click', togglePause);
+    hintBtn.addEventListener('click', showHint);
+    backToPickerBtn.addEventListener('click', goBackToPicker);
+    focusModeBtn.addEventListener('click', toggleFocusMode);
+    hideTopPanelsBtn.addEventListener('click', hideTopPanels);
+    togglePanelsBtn.addEventListener('click', toggleTopPanels);
+
+    exportCsvBtn.addEventListener('click', exportCsv);
+    exportPdfBtn.addEventListener('click', exportPdf);
+    clearHistoryBtn.addEventListener('click', clearHistory);
+    closeReportBtn.addEventListener('click', closeReport);
+    playAgainBtn.addEventListener('click', startGame);
+    reportBackBtn.addEventListener('click', goBackToPicker);
+
+    init();
+  </script>
+</body>
+</html>
