@@ -23,9 +23,7 @@
       --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -35,9 +33,7 @@
       color: var(--text);
     }
 
-    body {
-      min-height: 100vh;
-    }
+    body { min-height: 100vh; }
 
     .wrap {
       max-width: 1320px;
@@ -89,13 +85,8 @@
       transition: transform 0.06s ease, opacity 0.2s ease;
     }
 
-    .btn:hover {
-      opacity: 0.96;
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
+    .btn:hover { opacity: 0.96; }
+    .btn:active { transform: translateY(1px); }
 
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-secondary { background: #e8eefc; color: #153e90; }
@@ -359,10 +350,6 @@
       grid-template-columns: 1fr;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
     .report-table {
       width: 100%;
       border-collapse: collapse;
@@ -401,28 +388,15 @@
       margin-top: 6px;
     }
 
-    .good {
-      color: var(--success);
-      font-weight: 700;
-    }
-
-    .bad {
-      color: var(--danger);
-      font-weight: 700;
-    }
-
-    .warn {
-      color: var(--warning);
-      font-weight: 700;
-    }
+    .good { color: var(--success); font-weight: 700; }
+    .bad { color: var(--danger); font-weight: 700; }
+    .warn { color: var(--warning); font-weight: 700; }
 
     @media print {
       .top-panel, .toolbar, .game-stage, .sidebar, .hide-on-print {
         display: none !important;
       }
-      body {
-        background: #fff;
-      }
+      body { background: #fff; }
       .card {
         box-shadow: none;
         border: 1px solid #ccc;
@@ -469,7 +443,7 @@
       </div>
 
       <div class="instruction">
-        Instrukcja: klikaj poprawne kafelki we właściwej kolejności, aby zbudować tłumaczenie.
+        Wpisz imię ucznia, wybierz klasę / grupę, a potem zestaw.
       </div>
     </div>
 
@@ -500,6 +474,10 @@
 
             <div class="status-pill-row">
               <div class="status-pill">
+                <span class="label">Punkty</span>
+                <span class="value" id="totalScoreValue">0</span>
+              </div>
+              <div class="status-pill">
                 <span class="label">Poprawne</span>
                 <span class="value" id="correctValue">0</span>
               </div>
@@ -510,10 +488,6 @@
               <div class="status-pill">
                 <span class="label">Ukończone</span>
                 <span class="value" id="completedValue">0</span>
-              </div>
-              <div class="status-pill">
-                <span class="label">Razem</span>
-                <span class="value" id="totalScoreValue">0</span>
               </div>
             </div>
           </div>
@@ -633,6 +607,8 @@
       sets: []
     };
 
+    const REMOTE_JSON_URL = './sentences.json';
+
     const topPanel = document.getElementById('topPanel');
     const gameTitle = document.getElementById('gameTitle');
     const studentNameInput = document.getElementById('studentNameInput');
@@ -676,14 +652,13 @@
     const promptMeta = document.getElementById('promptMeta');
     const answerArea = document.getElementById('answerArea');
     const tileLayer = document.getElementById('tileLayer');
-    const gameStage = document.getElementById('gameStage');
     const floatingNote = document.getElementById('floatingNote');
-    const mainLayout = document.getElementById('mainLayout');
 
     let teacherData = loadTeacherData();
     let globalSettings = teacherData.globalSettings;
-    let allSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
-    let visibleSets = [];
+    let remoteSets = [];
+    let localSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
+    let allSets = [];
 
     let gameState = {
       started: false,
@@ -718,6 +693,7 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEYS.teacherData);
         if (!raw) return deepClone(DEFAULT_DATA);
+
         const parsed = JSON.parse(raw);
         return {
           globalSettings: {
@@ -729,6 +705,75 @@
       } catch (e) {
         return deepClone(DEFAULT_DATA);
       }
+    }
+
+    function refreshTeacherData() {
+      teacherData = loadTeacherData();
+      globalSettings = teacherData.globalSettings;
+      localSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
+      mergeAllSets();
+    }
+
+    async function loadRemoteSentencesJson() {
+      try {
+        const response = await fetch(REMOTE_JSON_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Fetch failed');
+        const parsed = await response.json();
+
+        if (Array.isArray(parsed)) {
+          remoteSets = parsed;
+        } else if (Array.isArray(parsed.sets)) {
+          remoteSets = parsed.sets;
+        } else {
+          remoteSets = [];
+        }
+      } catch (e) {
+        remoteSets = [];
+      }
+
+      mergeAllSets();
+    }
+
+    function mergeAllSets() {
+      const merged = [];
+      const byId = new Map();
+
+      for (const set of remoteSets) {
+        if (!set || !set.id) continue;
+        byId.set(set.id, normalizeSet(set));
+      }
+
+      for (const set of localSets) {
+        if (!set || !set.id) continue;
+        byId.set(set.id, normalizeSet(set));
+      }
+
+      for (const item of byId.values()) {
+        merged.push(item);
+      }
+
+      allSets = merged.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pl'));
+    }
+
+    function normalizeSet(setObj) {
+      return {
+        id: String(setObj.id || '').trim(),
+        name: String(setObj.name || '').trim() || 'Bez nazwy',
+        classGroup: String(setObj.classGroup || setObj.class || '').trim(),
+        theme: String(setObj.theme || '').trim(),
+        buildMode: setObj.buildMode === 'letters' ? 'letters' : 'words',
+        distractorSettings: {
+          mode: setObj.distractorSettings?.mode || 'inherit',
+          count: Number(setObj.distractorSettings?.count ?? 0),
+          type: setObj.distractorSettings?.type || 'automatic'
+        },
+        items: Array.isArray(setObj.items)
+          ? setObj.items.map(item => ({
+              source: String(item.source || '').trim(),
+              target: String(item.target || '').trim()
+            })).filter(item => item.source && item.target)
+          : []
+      };
     }
 
     function loadReportHistory() {
@@ -745,12 +790,6 @@
       localStorage.setItem(STORAGE_KEYS.reportHistory, JSON.stringify(history));
     }
 
-    function refreshData() {
-      teacherData = loadTeacherData();
-      globalSettings = teacherData.globalSettings;
-      allSets = Array.isArray(teacherData.sets) ? teacherData.sets : [];
-    }
-
     function updateTitle() {
       gameTitle.textContent = globalSettings.gameTitle || 'Gra tłumaczeniowa';
     }
@@ -758,9 +797,11 @@
     function uniqueClassGroups() {
       const set = new Set();
       if (globalSettings.defaultClassGroup) set.add(globalSettings.defaultClassGroup);
+
       allSets.forEach(s => {
         if (s.classGroup) set.add(s.classGroup);
       });
+
       return [''].concat([...set].sort((a, b) => a.localeCompare(b, 'pl')));
     }
 
@@ -770,7 +811,8 @@
         const label = group || 'Wszystkie';
         return `<option value="${escapeHtmlAttr(group)}">${escapeHtml(label)}</option>`;
       }).join('');
-      if (globalSettings.defaultClassGroup) {
+
+      if (globalSettings.defaultClassGroup && groups.includes(globalSettings.defaultClassGroup)) {
         classGroupSelect.value = globalSettings.defaultClassGroup;
       }
     }
@@ -782,7 +824,7 @@
 
     function renderSets() {
       const group = classGroupSelect.value || '';
-      visibleSets = filterSetsByClassGroup(group);
+      const visibleSets = filterSetsByClassGroup(group);
 
       if (!visibleSets.length) {
         setSelect.innerHTML = '<option value="">Brak zestawów</option>';
@@ -790,13 +832,9 @@
       }
 
       setSelect.innerHTML = visibleSets.map(s => {
-        const label = s.classGroup ? `${s.name} (${s.classGroup})` : s.name;
-        return `<option value="${escapeHtmlAttr(s.id)}">${escapeHtml(label)}</option>`;
+        const suffix = s.classGroup ? ` (${s.classGroup})` : '';
+        return `<option value="${escapeHtmlAttr(s.id)}">${escapeHtml(s.name + suffix)}</option>`;
       }).join('');
-
-      if (!setSelect.value && visibleSets[0]) {
-        setSelect.value = visibleSets[0].id;
-      }
     }
 
     function getSelectedSet() {
@@ -809,7 +847,10 @@
       if (!original) return '';
 
       if (globalSettings.punctuationMode === 'remove') {
-        return original.replace(/[.,!?;:()[\]{}"“”'`…\-]/g, '').replace(/\s+/g, ' ').trim();
+        return original
+          .replace(/[.,!?;:()[\]{}"“”'`…\-]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
       }
 
       return original.replace(/\s+/g, ' ').trim();
@@ -817,7 +858,6 @@
 
     function tokenizeByMode(text, mode) {
       const normalized = normalizeText(text);
-
       if (!normalized) return [];
 
       if (mode === 'letters') {
@@ -830,22 +870,17 @@
     function buildSentenceObjects(setObj) {
       if (!setObj || !Array.isArray(setObj.items)) return [];
 
-      let items = setObj.items.map((item, index) => {
-        const source = String(item.source || '').trim();
-        const target = String(item.target || '').trim();
-
-        return {
-          id: `${setObj.id}_${index}`,
-          source,
-          target,
-          buildMode: setObj.buildMode || 'words',
-          distractorSettings: setObj.distractorSettings || {
-            mode: 'inherit',
-            count: globalSettings.defaultDistractorCount,
-            type: globalSettings.defaultDistractorType
-          }
-        };
-      });
+      let items = setObj.items.map((item, index) => ({
+        id: `${setObj.id}_${index}`,
+        source: String(item.source || '').trim(),
+        target: String(item.target || '').trim(),
+        buildMode: setObj.buildMode || 'words',
+        distractorSettings: setObj.distractorSettings || {
+          mode: 'inherit',
+          count: Number(globalSettings.defaultDistractorCount || 0),
+          type: globalSettings.defaultDistractorType || 'automatic'
+        }
+      }));
 
       if (globalSettings.swapLanguages) {
         items = items.map(item => ({
@@ -960,6 +995,7 @@
           const materialPool = collectMaterialPool(buildMode, sentence.id)
             .filter(ch => !answerTokens.includes(ch) || Math.random() > 0.6);
           distractors = shuffleArray(materialPool).slice(0, distractorConfig.count);
+
           while (distractors.length < distractorConfig.count) {
             distractors.push(...generateLetterDistractors(answerTokens, distractorConfig.count - distractors.length));
           }
@@ -977,14 +1013,14 @@
       }
 
       const answerTiles = answerTokens.map((text, index) => ({
-        id: `a_${sentence.id}_${index}_${Math.random().toString(36).slice(2,7)}`,
+        id: `a_${sentence.id}_${index}_${Math.random().toString(36).slice(2, 7)}`,
         text,
         kind: 'answer',
         answerIndex: index
       }));
 
       const distractorTiles = distractors.map((text, index) => ({
-        id: `d_${sentence.id}_${index}_${Math.random().toString(36).slice(2,7)}`,
+        id: `d_${sentence.id}_${index}_${Math.random().toString(36).slice(2, 7)}`,
         text,
         kind: 'distractor',
         answerIndex: -1
@@ -1025,10 +1061,7 @@
     }
 
     function setPromptForSentence(sentence) {
-      promptTitle.textContent = globalSettings.translationInstruction
-        ? `Przetłumacz`
-        : `Zbuduj zdanie`;
-
+      promptTitle.textContent = globalSettings.translationInstruction ? 'Przetłumacz' : 'Zbuduj zdanie';
       promptText.textContent = sentence.source;
 
       const buildModeLabel = sentence.buildMode === 'letters' ? 'litery' : 'wyrazy';
@@ -1036,8 +1069,10 @@
     }
 
     function startGame() {
-      refreshData();
+      refreshTeacherData();
       updateTitle();
+      renderClassGroups();
+      renderSets();
 
       const selectedSet = getSelectedSet();
       if (!selectedSet) {
@@ -1084,10 +1119,6 @@
     function nextSentence(isFromStart = false) {
       if (!gameState.started || gameState.finished) return;
 
-      if (!isFromStart && !gameState.paused && gameState.currentSentenceIndex >= 0) {
-        finalizeSentenceAsSkippedIfNeeded();
-      }
-
       gameState.currentSentenceIndex += 1;
 
       if (gameState.currentSentenceIndex >= gameState.sentences.length) {
@@ -1109,12 +1140,6 @@
       startSentenceTimer();
       startSpawnLoop();
       updateHud();
-    }
-
-    function finalizeSentenceAsSkippedIfNeeded() {
-      if (!gameState.started || gameState.finished) return;
-      if (!gameState.sentences[gameState.currentSentenceIndex]) return;
-      if (gameState.currentAnswer.length === 0 && gameState.currentTiles.length === 0) return;
     }
 
     function startSentenceTimer() {
@@ -1143,11 +1168,12 @@
     }
 
     function handleSentenceTimeout() {
+      const sentence = gameState.sentences[gameState.currentSentenceIndex];
       registerSentenceResult({
         completed: false,
         timedOut: true,
-        answerText: gameState.currentAnswer.join(gameState.sentences[gameState.currentSentenceIndex].buildMode === 'letters' ? '' : ' '),
-        expectedText: normalizeText(gameState.sentences[gameState.currentSentenceIndex].target),
+        answerText: gameState.currentAnswer.join(sentence.buildMode === 'letters' ? '' : ' '),
+        expectedText: normalizeText(sentence.target),
         mistakes: gameState.currentSentenceMistakes,
         scoreDelta: 0,
         durationSeconds: elapsedSecondsForCurrentSentence()
@@ -1193,6 +1219,7 @@
       tileLayer.appendChild(probe);
       const rect = probe.getBoundingClientRect();
       probe.remove();
+
       return {
         width: Math.ceil(rect.width),
         height: Math.ceil(rect.height)
@@ -1214,7 +1241,6 @@
       const maxAttempts = 40;
       const minGapX = 12;
       const minGapY = 10;
-
       let bestCandidate = { left: 12, top: 12, score: -Infinity };
 
       for (let i = 0; i < maxAttempts; i++) {
@@ -1225,15 +1251,8 @@
         let nearestDistanceScore = 999999;
 
         for (const item of existing) {
-          const dx = Math.max(
-            0,
-            Math.max(item.left - (left + width), left - (item.left + item.width))
-          );
-
-          const dy = Math.max(
-            0,
-            Math.max(item.top - (top + height), top - (item.top + item.height))
-          );
+          const dx = Math.max(0, Math.max(item.left - (left + width), left - (item.left + item.width)));
+          const dy = Math.max(0, Math.max(item.top - (top + height), top - (item.top + item.height)));
 
           const overlapX = left < item.left + item.width + minGapX && left + width + minGapX > item.left;
           const overlapY = top < item.top + item.height + minGapY && top + height + minGapY > item.top;
@@ -1246,13 +1265,9 @@
           if (distScore < nearestDistanceScore) nearestDistanceScore = distScore;
         }
 
-        if (!existing.length) {
-          return { left, top };
-        }
+        if (!existing.length) return { left, top };
 
-        if (!overlaps) {
-          return { left, top };
-        }
+        if (!overlaps) return { left, top };
 
         if (nearestDistanceScore > bestCandidate.score) {
           bestCandidate = { left, top, score: nearestDistanceScore };
@@ -1278,7 +1293,6 @@
       node.style.top = `${pos.top}px`;
 
       node.addEventListener('click', () => handleTileClick(tileObj, node));
-
       tileLayer.appendChild(node);
     }
 
@@ -1321,6 +1335,7 @@
             durationSeconds: elapsedSecondsForCurrentSentence(),
             mistakeLimitReached: true
           });
+
           nextSentence();
           updateHud();
           return;
@@ -1702,8 +1717,10 @@
       return escapeHtml(value);
     }
 
-    function init() {
-      refreshData();
+    async function init() {
+      refreshTeacherData();
+      await loadRemoteSentencesJson();
+
       updateTitle();
       renderClassGroups();
       renderSets();
