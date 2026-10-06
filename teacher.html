@@ -15,6 +15,7 @@
       --accent-2: #1d4ed8;
       --danger: #dc2626;
       --success: #059669;
+      --warning: #d97706;
       --shadow: 0 10px 25px rgba(0,0,0,0.08);
       --radius: 16px;
     }
@@ -30,7 +31,7 @@
     }
 
     .wrap {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 24px 16px 80px;
     }
@@ -78,6 +79,11 @@
     .muted {
       color: var(--muted);
       font-size: 14px;
+    }
+
+    .warn {
+      color: var(--warning);
+      font-weight: 700;
     }
 
     .grid {
@@ -163,6 +169,7 @@
     .btn-danger { background: #fee2e2; color: #991b1b; }
     .btn-success { background: #d1fae5; color: #065f46; }
     .btn-light { background: #f3f4f6; color: #374151; }
+    .btn-warning { background: #fef3c7; color: #92400e; }
 
     .section-note {
       margin-top: 6px;
@@ -213,7 +220,7 @@
     }
 
     .json-box {
-      min-height: 280px;
+      min-height: 320px;
     }
 
     .footer-actions {
@@ -244,6 +251,12 @@
       flex-wrap: wrap;
       margin-top: 10px;
     }
+
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
@@ -273,15 +286,16 @@
       <h1>Teacher Panel</h1>
       <div class="topbar-actions">
         <a class="btn btn-secondary" href="./" target="_blank" rel="noopener">Open student game</a>
+        <button class="btn btn-light" id="reloadRemoteBtn">Reload sentences.json</button>
         <button class="btn btn-light" id="logoutBtn">Logout</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>1. Global settings (default)</h2>
+      <h2>1. Global settings (local teacher settings)</h2>
       <p class="muted">
-        These defaults are used by the student game. Sentence material stays in <code>sentences.json</code>,
-        while scoring and tile speed are controlled here.
+        These settings are stored locally in the browser and used by the student game.
+        The sentence material itself is read from <code>sentences.json</code>.
       </p>
 
       <div class="grid">
@@ -478,7 +492,7 @@
             <input type="range" id="tilesPerMinute" min="5" max="120" step="1" />
             <div class="range-value" id="tilesPerMinuteValue">35 tiles/min</div>
           </div>
-          <div class="help">The old Slow / Normal / Fast setting is replaced with a direct slider.</div>
+          <div class="help">This replaces the old Slow / Normal / Fast option.</div>
         </div>
       </div>
 
@@ -491,11 +505,19 @@
     </div>
 
     <div class="card">
-      <h2>2. Local sets (optional)</h2>
+      <h2>2. Remote data source</h2>
       <p class="muted">
-        Your main material should stay in <code>sentences.json</code>. This section is only for optional local sets
-        that you want to add quickly in the browser.
+        The panel reads current material from <code>./sentences.json</code>. You can edit the loaded data here
+        and then download a new JSON file.
       </p>
+      <div id="remoteStatus" class="status"></div>
+      <div class="section-note">
+        <span class="warn">Important:</span> this page can read the file, but it cannot overwrite the file on GitHub automatically.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Edit loaded sets from sentences.json</h2>
 
       <div class="grid">
         <div class="col-3">
@@ -559,12 +581,13 @@
           <textarea id="sentencePairs" placeholder="One pair per line, e.g.
 I am learning English. = Uczę się angielskiego.
 How are you? = Jak się masz?"></textarea>
+          <div class="help">Format: source = target. One pair per line.</div>
         </div>
       </div>
 
       <div class="footer-actions">
-        <button class="btn btn-secondary" id="importCsvBtn">Import CSV</button>
-        <button class="btn btn-success" id="addSetBtn">Add local set</button>
+        <button class="btn btn-success" id="saveSetBtn">Save set in memory</button>
+        <button class="btn btn-secondary" id="addNewSetBtn">Add new set</button>
         <button class="btn btn-light" id="clearSetFieldsBtn">Clear fields</button>
       </div>
 
@@ -572,7 +595,7 @@ How are you? = Jak się masz?"></textarea>
     </div>
 
     <div class="card">
-      <h2>3. Local set filters</h2>
+      <h2>4. Set filters</h2>
 
       <div class="grid">
         <div class="col-6">
@@ -593,11 +616,10 @@ How are you? = Jak się masz?"></textarea>
     </div>
 
     <div class="card">
-      <h2>4. Local translation sets</h2>
+      <h2>5. Loaded translation sets</h2>
       <div class="small-actions">
-        <button class="btn btn-secondary" id="addEmptySetBtn">Add empty set</button>
         <button class="btn btn-light" id="sortSetsBtn">Sort sets A-Z</button>
-        <button class="btn btn-danger" id="removeAllSetsBtn">Remove all local sets</button>
+        <button class="btn btn-danger" id="removeAllSetsBtn">Remove all loaded sets</button>
       </div>
 
       <div class="divider"></div>
@@ -605,19 +627,18 @@ How are you? = Jak się masz?"></textarea>
     </div>
 
     <div class="card">
-      <h2>5. JSON preview (local sets only)</h2>
+      <h2>6. JSON preview for sentences.json</h2>
       <p class="muted">
-        This preview contains the current global settings and optional local sets from the browser.
-        Your remote <code>sentences.json</code> is loaded by the student game separately.
+        This preview is generated from the currently loaded and edited set data.
       </p>
 
       <textarea id="jsonPreview" class="json-box"></textarea>
 
       <div class="footer-actions">
         <button class="btn btn-secondary" id="refreshJsonBtn">Refresh JSON</button>
-        <button class="btn btn-success" id="downloadJsonBtn">Download local JSON</button>
+        <button class="btn btn-success" id="downloadJsonBtn">Download sentences.json</button>
         <button class="btn btn-light" id="copyJsonBtn">Copy JSON</button>
-        <button class="btn btn-secondary" id="importExistingJsonBtn">Import local JSON</button>
+        <button class="btn btn-warning" id="importExistingJsonBtn">Import JSON into editor</button>
       </div>
 
       <div id="jsonStatus" class="status"></div>
@@ -627,40 +648,38 @@ How are you? = Jak się masz?"></textarea>
   <script>
     const STORAGE_KEYS = {
       teacherAuth: 'new_quiz_teacher_auth',
-      teacherData: 'new_quiz_teacher_data'
+      teacherSettings: 'new_quiz_teacher_settings'
     };
 
     const TEACHER_PASSWORD = '1111';
+    const REMOTE_JSON_URL = './sentences.json';
 
-    const DEFAULT_DATA = {
-      globalSettings: {
-        gameTitle: 'Gra tłumaczeniowa',
-        difficulty: 'easy',
-        defaultClassGroup: '',
-        sourceLanguage: 'Polish',
-        targetLanguage: 'English',
-        swapLanguages: false,
-        timerMode: 0,
-        maxMistakes: 0,
-        sentenceOrder: 'in-order',
-        autoNext: 0,
-        defaultDistractorCount: 4,
-        defaultDistractorType: 'automatic',
-        punctuationMode: 'automatic',
-        studentNameRequired: true,
-        showSetPickerAtStart: true,
-        hintEnabled: true,
-        showSolution: true,
-        translationInstruction: true,
-        soundEnabled: true,
-        pointsForCompletion: 10,
-        bonusNoMistakes: 20,
-        penaltyWrongClick: -1,
-        bonusFastCompletion: 1,
-        fastCompletionSeconds: 10,
-        tilesPerMinute: 35
-      },
-      sets: []
+    const DEFAULT_SETTINGS = {
+      gameTitle: 'Gra tłumaczeniowa',
+      difficulty: 'easy',
+      defaultClassGroup: '',
+      sourceLanguage: 'Polish',
+      targetLanguage: 'English',
+      swapLanguages: false,
+      timerMode: 0,
+      maxMistakes: 0,
+      sentenceOrder: 'in-order',
+      autoNext: 0,
+      defaultDistractorCount: 4,
+      defaultDistractorType: 'automatic',
+      punctuationMode: 'automatic',
+      studentNameRequired: true,
+      showSetPickerAtStart: true,
+      hintEnabled: true,
+      showSolution: true,
+      translationInstruction: true,
+      soundEnabled: true,
+      pointsForCompletion: 10,
+      bonusNoMistakes: 20,
+      penaltyWrongClick: -1,
+      bonusFastCompletion: 1,
+      fastCompletionSeconds: 10,
+      tilesPerMinute: 35
     };
 
     const authView = document.getElementById('authView');
@@ -669,6 +688,7 @@ How are you? = Jak się masz?"></textarea>
     const enterTeacherPanelBtn = document.getElementById('enterTeacherPanelBtn');
     const authStatus = document.getElementById('authStatus');
     const logoutBtn = document.getElementById('logoutBtn');
+    const reloadRemoteBtn = document.getElementById('reloadRemoteBtn');
 
     const gameTitle = document.getElementById('gameTitle');
     const difficulty = document.getElementById('difficulty');
@@ -701,6 +721,7 @@ How are you? = Jak się masz?"></textarea>
     const saveGlobalSettingsBtn = document.getElementById('saveGlobalSettingsBtn');
     const resetGlobalDefaultsBtn = document.getElementById('resetGlobalDefaultsBtn');
     const globalSettingsStatus = document.getElementById('globalSettingsStatus');
+    const remoteStatus = document.getElementById('remoteStatus');
 
     const setId = document.getElementById('setId');
     const setName = document.getElementById('setName');
@@ -711,8 +732,8 @@ How are you? = Jak się masz?"></textarea>
     const setDistractorCount = document.getElementById('setDistractorCount');
     const setDistractorType = document.getElementById('setDistractorType');
     const sentencePairs = document.getElementById('sentencePairs');
-    const importCsvBtn = document.getElementById('importCsvBtn');
-    const addSetBtn = document.getElementById('addSetBtn');
+    const saveSetBtn = document.getElementById('saveSetBtn');
+    const addNewSetBtn = document.getElementById('addNewSetBtn');
     const clearSetFieldsBtn = document.getElementById('clearSetFieldsBtn');
     const setStatus = document.getElementById('setStatus');
 
@@ -721,7 +742,6 @@ How are you? = Jak się masz?"></textarea>
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-    const addEmptySetBtn = document.getElementById('addEmptySetBtn');
     const sortSetsBtn = document.getElementById('sortSetsBtn');
     const removeAllSetsBtn = document.getElementById('removeAllSetsBtn');
     const setsList = document.getElementById('setsList');
@@ -733,31 +753,25 @@ How are you? = Jak się masz?"></textarea>
     const importExistingJsonBtn = document.getElementById('importExistingJsonBtn');
     const jsonStatus = document.getElementById('jsonStatus');
 
-    let teacherData = loadTeacherData();
+    let teacherSettings = loadTeacherSettings();
+    let workingSets = [];
+    let loadedRemoteRaw = null;
 
-    function cloneDefaultData() {
-      return JSON.parse(JSON.stringify(DEFAULT_DATA));
-    }
-
-    function loadTeacherData() {
+    function loadTeacherSettings() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEYS.teacherData);
-        if (!raw) return cloneDefaultData();
-        const parsed = JSON.parse(raw);
+        const raw = localStorage.getItem(STORAGE_KEYS.teacherSettings);
+        if (!raw) return { ...DEFAULT_SETTINGS };
         return {
-          globalSettings: {
-            ...cloneDefaultData().globalSettings,
-            ...(parsed.globalSettings || {})
-          },
-          sets: Array.isArray(parsed.sets) ? parsed.sets : []
+          ...DEFAULT_SETTINGS,
+          ...JSON.parse(raw)
         };
       } catch (e) {
-        return cloneDefaultData();
+        return { ...DEFAULT_SETTINGS };
       }
     }
 
-    function saveTeacherData() {
-      localStorage.setItem(STORAGE_KEYS.teacherData, JSON.stringify(teacherData));
+    function saveTeacherSettings() {
+      localStorage.setItem(STORAGE_KEYS.teacherSettings, JSON.stringify(teacherSettings));
     }
 
     function setStatusMsg(el, message, ok = true) {
@@ -783,8 +797,8 @@ How are you? = Jak się masz?"></textarea>
       tilesPerMinuteValue.textContent = `${tilesPerMinute.value} tiles/min`;
     }
 
-    function renderGlobalSettings() {
-      const s = teacherData.globalSettings;
+    function renderTeacherSettings() {
+      const s = teacherSettings;
 
       gameTitle.value = s.gameTitle ?? '';
       difficulty.value = s.difficulty ?? 'easy';
@@ -815,7 +829,7 @@ How are you? = Jak się masz?"></textarea>
       updateTilesPerMinuteLabel();
     }
 
-    function collectGlobalSettingsFromForm() {
+    function collectTeacherSettingsFromForm() {
       return {
         gameTitle: gameTitle.value.trim(),
         difficulty: difficulty.value,
@@ -846,18 +860,85 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function saveGlobalSettings() {
-      teacherData.globalSettings = collectGlobalSettingsFromForm();
-      saveTeacherData();
-      refreshJsonPreview();
-      setStatusMsg(globalSettingsStatus, 'Global settings saved.', true);
+      teacherSettings = collectTeacherSettingsFromForm();
+      saveTeacherSettings();
+      setStatusMsg(globalSettingsStatus, 'Global settings saved locally.', true);
     }
 
     function restoreGlobalDefaults() {
-      teacherData.globalSettings = JSON.parse(JSON.stringify(DEFAULT_DATA.globalSettings));
-      saveTeacherData();
-      renderGlobalSettings();
-      refreshJsonPreview();
+      teacherSettings = { ...DEFAULT_SETTINGS };
+      saveTeacherSettings();
+      renderTeacherSettings();
       setStatusMsg(globalSettingsStatus, 'Global settings restored to defaults.', true);
+    }
+
+    async function loadRemoteSentencesJson() {
+      try {
+        const response = await fetch(REMOTE_JSON_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const parsed = await response.json();
+        loadedRemoteRaw = parsed;
+        workingSets = normalizeIncomingSets(parsed);
+
+        renderSets();
+        refreshJsonPreview();
+
+        setStatusMsg(
+          remoteStatus,
+          `Loaded ${workingSets.length} set(s) from sentences.json.`,
+          true
+        );
+      } catch (e) {
+        workingSets = [];
+        renderSets();
+        refreshJsonPreview();
+        setStatusMsg(
+          remoteStatus,
+          'Could not load sentences.json. Check file path or JSON structure.',
+          false
+        );
+      }
+    }
+
+    function normalizeIncomingSets(parsed) {
+      if (Array.isArray(parsed)) {
+        return parsed.map(normalizeSet).filter(Boolean);
+      }
+
+      if (parsed && Array.isArray(parsed.sets)) {
+        return parsed.sets.map(normalizeSet).filter(Boolean);
+      }
+
+      return [];
+    }
+
+    function normalizeSet(setObj) {
+      if (!setObj) return null;
+
+      const id = String(setObj.id || '').trim();
+      const name = String(setObj.name || '').trim() || 'Bez nazwy';
+
+      return {
+        id: id || `set_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        classGroup: String(setObj.classGroup || setObj.class || '').trim(),
+        theme: String(setObj.theme || '').trim(),
+        buildMode: setObj.buildMode === 'letters' ? 'letters' : 'words',
+        distractorSettings: {
+          mode: setObj.distractorSettings?.mode || 'inherit',
+          count: Number(setObj.distractorSettings?.count ?? 0),
+          type: setObj.distractorSettings?.type || 'automatic'
+        },
+        items: Array.isArray(setObj.items)
+          ? setObj.items
+              .map(item => ({
+                source: String(item.source || '').trim(),
+                target: String(item.target || '').trim()
+              }))
+              .filter(item => item.source && item.target)
+          : []
+      };
     }
 
     function parseSentencePairs(text) {
@@ -867,8 +948,10 @@ How are you? = Jak się masz?"></textarea>
       for (const line of lines) {
         const parts = line.split('=');
         if (parts.length < 2) continue;
+
         const source = parts[0].trim();
         const target = parts.slice(1).join('=').trim();
+
         if (!source || !target) continue;
         items.push({ source, target });
       }
@@ -889,8 +972,8 @@ How are you? = Jak się masz?"></textarea>
       clearStatusMsg(setStatus);
     }
 
-    function addSet() {
-      const id = setId.value.trim() || `local_set_${Date.now()}`;
+    function saveEditedSet() {
+      const id = setId.value.trim() || `set_${Date.now()}`;
       const name = setName.value.trim();
       const classGroup = setClassGroup.value.trim();
       const theme = setTheme.value.trim();
@@ -924,25 +1007,30 @@ How are you? = Jak się masz?"></textarea>
         items: pairs
       };
 
-      const existingIndex = teacherData.sets.findIndex(s => s.id === id);
+      const existingIndex = workingSets.findIndex(s => s.id === id);
       if (existingIndex >= 0) {
-        teacherData.sets[existingIndex] = setObj;
+        workingSets[existingIndex] = setObj;
       } else {
-        teacherData.sets.push(setObj);
+        workingSets.push(setObj);
       }
 
-      saveTeacherData();
       renderSets();
       refreshJsonPreview();
-      setStatusMsg(setStatus, 'Local set saved.', true);
+      setStatusMsg(setStatus, 'Set saved in editor memory.', true);
       clearSetForm();
+    }
+
+    function addNewSet() {
+      clearSetForm();
+      setId.value = `set_${Date.now()}`;
+      setStatusMsg(setStatus, 'New set form ready.', true);
     }
 
     function renderSets() {
       const classFilter = filterClassGroup.value.trim().toLowerCase();
       const themeFilter = filterTheme.value.trim().toLowerCase();
 
-      let visibleSets = [...teacherData.sets];
+      let visibleSets = [...workingSets];
 
       if (classFilter) {
         visibleSets = visibleSets.filter(s => (s.classGroup || '').toLowerCase().includes(classFilter));
@@ -953,7 +1041,7 @@ How are you? = Jak się masz?"></textarea>
       }
 
       if (!visibleSets.length) {
-        setsList.innerHTML = '<div class="muted">No local sets found.</div>';
+        setsList.innerHTML = '<div class="muted">No sets loaded.</div>';
         return;
       }
 
@@ -979,7 +1067,7 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function editSet(id) {
-      const set = teacherData.sets.find(s => s.id === id);
+      const set = workingSets.find(s => s.id === id);
       if (!set) return;
 
       setId.value = set.id || '';
@@ -990,64 +1078,42 @@ How are you? = Jak się masz?"></textarea>
       setDistractorMode.value = set.distractorSettings?.mode || 'inherit';
       setDistractorCount.value = String(set.distractorSettings?.count ?? 0);
       setDistractorType.value = set.distractorSettings?.type || 'automatic';
-      sentencePairs.value = (set.items || []).map(item => `${item.source} = ${item.target}`).join('\n');
+      sentencePairs.value = (set.items || [])
+        .map(item => `${item.source} = ${item.target}`)
+        .join('\n');
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setStatusMsg(setStatus, 'Local set loaded for editing.', true);
+      setStatusMsg(setStatus, 'Set loaded into form.', true);
     }
 
     function deleteSet(id) {
-      if (!confirm('Remove this local set?')) return;
-      teacherData.sets = teacherData.sets.filter(s => s.id !== id);
-      saveTeacherData();
-      renderSets();
-      refreshJsonPreview();
-    }
-
-    function addEmptySet() {
-      const id = `local_set_${Date.now()}`;
-      teacherData.sets.push({
-        id,
-        name: 'New local set',
-        classGroup: '',
-        theme: '',
-        buildMode: 'words',
-        distractorSettings: {
-          mode: 'inherit',
-          count: 0,
-          type: 'automatic'
-        },
-        items: []
-      });
-      saveTeacherData();
+      if (!confirm('Remove this set from the current editor session?')) return;
+      workingSets = workingSets.filter(s => s.id !== id);
       renderSets();
       refreshJsonPreview();
     }
 
     function sortSetsAZ() {
-      teacherData.sets.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pl'));
-      saveTeacherData();
+      workingSets.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pl'));
       renderSets();
       refreshJsonPreview();
     }
 
     function removeAllSets() {
-      if (!confirm('Remove all local sets?')) return;
-      teacherData.sets = [];
-      saveTeacherData();
+      if (!confirm('Remove all loaded sets from the editor session?')) return;
+      workingSets = [];
       renderSets();
       refreshJsonPreview();
     }
 
-    function exportLocalJson() {
+    function buildExportJsonObject() {
       return {
-        globalSettings: teacherData.globalSettings,
-        sets: teacherData.sets
+        sets: workingSets
       };
     }
 
     function refreshJsonPreview() {
-      jsonPreview.value = JSON.stringify(exportLocalJson(), null, 2);
+      jsonPreview.value = JSON.stringify(buildExportJsonObject(), null, 2);
     }
 
     function downloadJson() {
@@ -1055,12 +1121,12 @@ How are you? = Jak się masz?"></textarea>
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'local-teacher-data.json';
+      a.download = 'sentences.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setStatusMsg(jsonStatus, 'Local JSON downloaded.', true);
+      setStatusMsg(jsonStatus, 'New sentences.json downloaded.', true);
     }
 
     async function copyJson() {
@@ -1073,48 +1139,19 @@ How are you? = Jak się masz?"></textarea>
     }
 
     function importExistingJson() {
-      const raw = prompt('Paste local JSON here:');
+      const raw = prompt('Paste JSON here to load it into the editor:');
       if (!raw) return;
 
       try {
         const parsed = JSON.parse(raw);
-        teacherData = {
-          globalSettings: {
-            ...cloneDefaultData().globalSettings,
-            ...(parsed.globalSettings || {})
-          },
-          sets: Array.isArray(parsed.sets) ? parsed.sets : []
-        };
-
-        saveTeacherData();
-        renderGlobalSettings();
+        loadedRemoteRaw = parsed;
+        workingSets = normalizeIncomingSets(parsed);
         renderSets();
         refreshJsonPreview();
-        setStatusMsg(jsonStatus, 'Local JSON imported.', true);
+        setStatusMsg(jsonStatus, 'JSON imported into editor memory.', true);
       } catch (e) {
         setStatusMsg(jsonStatus, 'Invalid JSON.', false);
       }
-    }
-
-    function importCsv() {
-      const raw = prompt('Paste CSV lines as source,target');
-      if (!raw) return;
-
-      const lines = raw.split('\n').map(x => x.trim()).filter(Boolean);
-      const mapped = [];
-
-      for (const line of lines) {
-        const parts = line.split(',');
-        if (parts.length < 2) continue;
-        const source = parts[0].trim();
-        const target = parts.slice(1).join(',').trim();
-        if (source && target) {
-          mapped.push(`${source} = ${target}`);
-        }
-      }
-
-      sentencePairs.value = mapped.join('\n');
-      setStatusMsg(setStatus, 'CSV imported.', true);
     }
 
     function applyFilters() {
@@ -1149,13 +1186,12 @@ How are you? = Jak się masz?"></textarea>
       }
     }
 
-    function showPanel() {
+    async function showPanel() {
       authView.classList.add('hidden');
       panelView.classList.remove('hidden');
-      teacherData = loadTeacherData();
-      renderGlobalSettings();
-      renderSets();
-      refreshJsonPreview();
+      teacherSettings = loadTeacherSettings();
+      renderTeacherSettings();
+      await loadRemoteSentencesJson();
       clearStatusMsg(authStatus);
     }
 
@@ -1172,19 +1208,19 @@ How are you? = Jak się masz?"></textarea>
     });
 
     logoutBtn.addEventListener('click', logout);
+    reloadRemoteBtn.addEventListener('click', loadRemoteSentencesJson);
 
     saveGlobalSettingsBtn.addEventListener('click', saveGlobalSettings);
     resetGlobalDefaultsBtn.addEventListener('click', restoreGlobalDefaults);
     tilesPerMinute.addEventListener('input', updateTilesPerMinuteLabel);
 
-    addSetBtn.addEventListener('click', addSet);
+    saveSetBtn.addEventListener('click', saveEditedSet);
+    addNewSetBtn.addEventListener('click', addNewSet);
     clearSetFieldsBtn.addEventListener('click', clearSetForm);
-    importCsvBtn.addEventListener('click', importCsv);
 
     applyFiltersBtn.addEventListener('click', applyFilters);
     clearFiltersBtn.addEventListener('click', clearFilters);
 
-    addEmptySetBtn.addEventListener('click', addEmptySet);
     sortSetsBtn.addEventListener('click', sortSetsAZ);
     removeAllSetsBtn.addEventListener('click', removeAllSets);
 
